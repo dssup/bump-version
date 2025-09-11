@@ -293,7 +293,12 @@ bump-version init config
 {
   "version": "1.0.0",
   "versionFile": "VERSION",
-  "ignoreInvalidCommits": false
+  "ignoreInvalidCommits": false,
+  "includeSections": [
+    "BREAKING CHANGE",
+    "feat",
+    "fix"
+  ]
 }
 ```
 
@@ -302,6 +307,7 @@ bump-version init config
 - `"version"` — версия файла конфигурации
 - `"versionFile"` — имя файла-версии
 - `"ignoreInvalidCommits"` — игнорировать неверные коммиты (не выпадать с ошибкой)
+- `"includeSections"` — список типов коммитов, которые нужно включить в CHANGELOG
 
 ---
 
