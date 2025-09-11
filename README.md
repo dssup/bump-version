@@ -330,6 +330,30 @@ bump-version init config
 
 ---
 
+## Пример сгенерированного CHANGELOG файла
+
+```markdown
+# Changelog
+
+## [2.76.0](///compare/v2.75.0...v2.76.0) (2025-06-06)
+
+### Features
+
+* avoid rendering of AppConsole when it is hidden (its state is preserved though) b3f62f98
+* avoid rendering of ToTop button if it is hidden f67557ab
+* disable API echo in Overlay Console by default 00ef9def
+* **KauSection:** add Smoke icon indicator and the ability to search sensors with smoke state 8bf88509
+* **KauSection:** use proportional font for hex sensor state, also shade zero nibbles in gray 0f99f89d
+* make searching of items by empty queries faster ea585088
+
+
+### Bug Fixes
+
+* **Settings:** ensure current theme hover re-renders as soon as chosen theme changes 72e32f98
+```
+
+---
+
 ## Файлы, которые генерирует утилита
 
 - `CHANGELOG.md` — авто-сгенерированный журнал изменений, сгруппированный по версиям и типам изменений с соответствующими хэшами коммитов.
