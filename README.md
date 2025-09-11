@@ -295,7 +295,7 @@ bump-version init config
 ```json
 {
   "version": "1.0.0",
-  "versionFile": "VERSION",
+  "versionFilename": "VERSION",
   "ignoreInvalidCommits": false,
   "versionTagFormat": "v{major}.{minor}.{patch}",
   "includeSections": [
@@ -309,7 +309,7 @@ bump-version init config
 Поля файла конфигурации:
 
 - `"version"` — версия файла конфигурации.
-- `"versionFile"` — имя файла-версии.
+- `"versionFilename"` — имя файла-версии.
 - `"ignoreInvalidCommits"` — игнорировать неверные коммиты (не выпадать с ошибкой).
 - `"versionTagFormat"` — формат тэгов версии для Git. Подстроки `{major}`, `{minor}`,
   `{patch}` подставляются на мажорную, минорную, патч номера версии соответственно.
