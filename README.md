@@ -1,93 +1,331 @@
 # bump-version
 
+*bump-version* — утилита для автоматизации:
 
+- версирования, соответствующего спецификации [Semantic Versioning](https://semver.org/lang/ru)
+- генерации журнала изменений (*Changelog*)
+- проверки сообщений коммитов на соответствие спецификации [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0)
+- создания файла-версии, который можно импортировать в код своей программы при сборке. Это позволяет, например, автоматически поддерживать версию программы в `--version` или в графическом интерфейсе пользователя в актуальном состоянии
+- генерации Git-коммитов, связанных с выпуском версии, например: `chore: release 1.0.0`
+- автоматического добавления Git-тэгов к коммитам, связанным с выпуком версии
 
-## Getting started
+Утилита пока работает только с *Git*.
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Содержание
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+- Версирование
+- Поддерживаемые платформы
+- Установка и сборка
+  - Как собрать утилиту
+  - Как установить утилиту
+- Как использовать утилиту
+  - Предварительные шаги
+    - Делайте атомарные коммиты
+    - Спецификация Semantic Versioning
+    - Спецификация Conventional Commits
+  - Синтаксис утилиты
+  - Настройки утилиты
+- Как утилита определяет тип релиза
+- Файлы, которые генерирует утилита
+- Часто задаваемые вопросы (FAQ)
+- Контрибьютеры
 
-## Add your files
+---
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+## Версирование
 
+Утилита *bump-version* версирует сама себя.
+Это практика [догфудинга](https://en.wikipedia.org/wiki/Eating_your_own_dog_food), позволяющая проверить корректность работы и продемонстрировать поведение утилиты на реальном проекте.
+
+---
+
+## Поддерживаемые платформы
+
+Утилита работает на:
+
+- Linux (ARM64)
+- Linux (ARMV6L)
+- Linux (x86)
+- Linux (x86_64)
+- macOS (ARM64)
+- macOS (x86_64)
+- Microsoft Windows (x86)
+- Microsoft Windows (x86_64)
+
+В общем — везде, где есть компилятор Go.
+
+В директории `build/` после сборки утилиты ожидаемые файлы:
+
+- `linux/bump-version` — Linux (x86_64)
+- `macos-x86_64/bump-version` — macOS (x86_64)
+- `macos-arm64/bump-version` — macOS (ARM64)
+- `windows/bump-version.exe` — Microsoft Windows (x86_64)
+
+---
+
+## Установка и сборка
+
+### Как собрать утилиту
+
+- Установите последнюю версию компилятора языка Go.
+- Перейдите в корневую директорию проекта из командной строки.
+- Выполните:
+
+```bash
+go run scripts/build.go
 ```
-cd existing_repo
-git remote add origin https://rnd.sigma-is.ru/devs/bump-version.git
-git branch -M main
-git push -uf origin main
+
+После выполнения в каталоге `build/` появятся скомпилированные артефакты для поддерживаемых платформ.
+
+### Как установить утилиту
+
+Утилита собирается статически и не имеет рантайм-зависимостей, поэтому достаточна простая установка:
+
+- Скопируйте скомпилированный бинарный файл в любую директорию, доступную в PATH (например, `/usr/local/bin` на Unix-подобных системах или `C:\Program Files\bump-version\` на Windows).
+- При необходимости добавьте директорию с бинарником в переменную окружения PATH.
+
+---
+
+## Как использовать утилиту
+
+### Предварительные шаги
+
+- Репозиторий должен использовать Git.
+- Делайте атомарные коммиты (одна логическая правка — один коммит).
+- Соблюдайте Semantic Versioning для релизов.
+- Пишите сообщения коммитов по спецификации Conventional Commits.
+
+Репозиторий *bump-version* может послужить в качестве примера/референса для всех этих пунктов.
+
+#### Делайте атомарные коммиты
+
+Атомарный коммит — это коммит, который в себе содержит только одно логическое изменение. Он должен:
+
+- Решать одну задачу: исправление бага, добавление одной несложной фичи, изменение одного файла конфигурации и т.п.
+- Иметь осмысленный заголовок в формате Conventional Commits (тип[scope]: короткий глагол), отражающий суть изменения.
+- Не смешивать изменения разного рода: например, не включать форматирование кода, исправление бага и добавление функции в один коммит. Такие различающиеся по семантике правки должны быть разделены на отдельные коммиты (например, `style: format files` + `fix(scope): correct null pointer`).
+
+Почему это важно:
+- Для *bump-version* утилитарный анализ истории основывается на типах коммитов (feat/fix/BREAKING CHANGE). Если один коммит содержит несколько разных типов изменений, инструмент может неверно определить тип релиза или отнести изменение к неверной категории в CHANGELOG.
+- Атомарные коммиты упрощают ревью, откат и отладку (легче найти, где именно внесены проблема или баг через `git bisect`).
+- При автоматическом формировании CHANGELOG каждый коммит попадает в корректную секцию (Features, Bug Fixes и т.д.), что делает журнал понятным и полезным для пользователей.
+
+Практические рекомендации:
+- Делайте небольшие, частые коммиты.
+- Если работа началась с крупной задачи — разбивайте её на шаги и коммитьте по итерациям.
+- Используйте интерактивные стейджинг/патчинговые инструменты (`git add -p`), чтобы отделять логически разные изменения.
+- При необходимости добавляйте в тело коммита более подробное объяснение; заголовок оставляйте коротким и соответствующим Conventional Commits.
+
+Удобные инструменты для работы с Git:
+
+- Visual Studio Code — имеет очень удобный интегрированный Diff-просмотрщик, где можно стейджить отдельные фрагменты кода (https://code.visualstudio.com, https://github.com/VSCodium/vscodium).
+- Программа LazyGit — Удобный ncurses графический клиент терминала (https://github.com/jesseduffield/lazygit).
+- Плагин diffview.nvim для NeoVim, схож по интерфейсу и функционалу с Diff-просмотрщиком Visual Studio Code (https://github.com/sindrets/diffview.nvim).
+- Плагин vim-fugitive для ванильного Vim (https://github.com/tpope/vim-fugitive).
+- Плагин Magit для GNU Emacs (https://github.com/magit/magit).
+- Приложение Gitk - GUI просмотщик для Git (https://git-scm.com/docs/gitk).
+
+#### Спецификация Semantic Versioning
+
+Для точного понимания рекомендуется прочитать полную спецификацию: https://semver.org/lang/ru
+
+Краткое резюме и практические правила применения в контексте *bump-version*:
+
+- Формат версии: MAJOR.MINOR.PATCH (например, 2.4.1).
+  - MAJOR — несовместимые изменения API.
+  - MINOR — добавление функциональности обратно-совместимым способом.
+  - PATCH — исправления багов обратно-совместимым способом.
+
+- Правила повышения версии на основе истории коммитов (как применяет *bump-version*):
+  - **MAJOR** — повышается, если в рассматриваемом диапазоне коммитов обнаружена запись `BREAKING CHANGE` в теле/футере коммита или присутствует восклицательный знак после типа (например, `feat!: ...` или `fix!: ...`). Такие изменения считаются несовместимыми с предыдущими версиями и требуют инкремента первого числа.
+  - **MINOR** — повышается, если нет breaking changes, но есть хотя бы один коммит типа `feat`. Это добавление новой функциональности, совместимое назад.
+  - **PATCH** — повышается, если нет breaking changes и feat-коммитов, но есть коммиты типа `fix`. Это исправления багов.
+  - Никаких изменений — если нет коммитов типов feat/fix/BREAKING CHANGE (инструмент завершается без релиза).
+
+- Дополнительные нюансы:
+  - Коммиты типов `perf`, `refactor`, `docs`, `chore` и т.п. по умолчанию не повышают версию, но могут включаться в changelog в соответствующие разделы. При желании такие типы можно настроить как влияющие на релиз (см. настройки утилиты).
+  - BREAKING CHANGE считается даже если он указан в теле коммита (например, после пустой строки в сообщении) и должен быть явным — описание изменения и причину несовместимости.
+  - Префикс `v` в тэге (например, `v1.2.3`) — опционален и настраивается через `-tag-format`. Семантика версии от этого не меняется.
+
+- Примеры:
+  - История: один `feat: add export` и несколько `fix:` → минорный релиз (x.Y+1.0).
+  - История: `refactor: restructure internals` и `docs:` → версия не меняется по умолчанию.
+  - История: `feat!: change API signature` или наличие `BREAKING CHANGE:` → мажорный релиз (X+1.0.0).
+
+Следуя этим правилам и практикам атомарных коммитов обеспечиваются корректная работа *bump-version* и понятный, полезный журнал изменений.
+
+#### Спецификация Conventional Commits
+
+Для полноты рекомендуется прочитать спецификацию: https://www.conventionalcommits.org/en/v1.0.0
+
+Если кратко, то:
+
+Формат заголовка коммита:
+
+```ascii
+тип_коммита(область_видимости_коммита): заголовок_коммита
+
+тело_коммита
 ```
 
-## Integrate with your tools
+Область видимости коммита и тело коммита необязательны.
 
-- [ ] [Set up project integrations](https://rnd.sigma-is.ru/devs/bump-version/-/settings/integrations)
+Область видимости поощряется — это указывает с каким конкретным местом или модулем, связан коммит
 
-## Collaborate with your team
+Заголовок должен начинаться с глагола в начальной форме настоящего времени, без точки на конце, со строчной буквы. Область видимости — абстрактное имя модуля или уникальное имя файла исходного кода.
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+Краткое пояснение типов коммитов:
 
-## Test and Deploy
+- feat — добавление новых возможностей, меняющих функциональность программы.
+  Пример: `feat: add user authentication`
 
-Use the built-in continuous integration in GitLab.
+- fix — исправление багов.
+  Пример: `fix: resolve crash on login`
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+- docs — изменения в документации.
+  Пример: `docs: add installation instructions to README.md`
 
-***
+- style — форматирование, исправления стиля, не влияющие на логику.
+  Пример: `style: format code`
 
-# Editing this README
+- refactor — изменения кода, не добавляющие функциональности и не исправляющие баги.
+  Пример: `refactor: simplify user service logic`
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+- perf — изменения, улучшающие производительность.
+  Пример: `perf: optimize image loading`
 
-## Suggestions for a good README
+- test — добавление или изменение тестов.
+  Пример: `test: add unit tests for user model`
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+- build — изменения в системе сборки или внешних зависимостях.
+  Пример: `build: update Makefile configuration`
 
-## Name
-Choose a self-explaining name for your project.
+- ci — изменения в конфигурации CI.
+  Пример: `ci: add linting step to CI pipeline`
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+- chore — вспомогательные задачи, не затрагивающие исходный код продукта.
+  Пример: `chore: update dependencies`
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+- revert — откат предыдущих изменений.
+  Пример: `revert: revert "feat: add user authentication"`
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+- BREAKING CHANGE — описание изменений, несовместимых с предыдущими версиями (может быть в теле коммита или как отдельный заголовок).
+  Пример: `BREAKING CHANGE: The API endpoint has changed from /api/v1/users to /api/v2/users.`
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+### Синтаксис утилиты
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+- Простой релиз с генерацией всех необходимых файлов:
+```bash
+bump-version
+```
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+Команда включает автоопределение по коммитам, обновление файла-версии, Changelog, генерацию
+коммита с выпуском версии, добавление Git-тэга.
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+- Вывести журнал изменений этой версии без добавления их в файл Changelog:
+```bash
+bump-version preview changelog
+```
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+- Добавить хук в Git для автоматической проверки сообщений коммитов перед каждым коммитов:
+```bash
+bump-version add hook
+```
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+  Хуки могут мешать при скваше коммитов и частом использовании `git rebase`,
+  поэтому хук по умолчанию не устанавливается. Для просто проверки правильности
+  всех коммитов есть команда `bump-version lint`. Также, если `ignoreInvalidCommits` не
+  установлен в значение `true` в конфигурационном файле, то утилита выпадает с ошибкой при
+  наличии неправильных коммитов.
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+- Удалить хук в Git для автоматической проверки сообщений коммитов:
+```bash
+bump-version remove hook
+```
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+- Проверить правильность коммитов, вывести все коммиты, не соответствующие Conventional Commits:
+```bash
+bump-version lint
+```
 
-## License
-For open source projects, say how it is licensed.
+  Для того, чтобы всегда проверять коммиты,
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+- Вывести информацию о текущей версии вашей программы:
+```bash
+bump-version your version
+```
+
+- Вывести информацию о следующей версии вашей программы без внесения каких-либо изменений:
+```bash
+bump-version next version
+```
+
+- Получить справку утилиты:
+```bash
+bump-version help
+```
+
+- Получить версию утилиты:
+```bash
+bump-version version
+```
+
+- Использовать другой конфигурационный файл:
+```bash
+bump-version -config other-bump-version-config.json команда
+```
+
+- Добавить конфигурационный файл `bump-version.json` в корень проекта:
+```bash
+bump-version init config
+```
+
+### Настройки утилиты
+
+Файл конфигурации утилиты должен лежать в корне проекта и иметь имя `bump-version.json`.
+Если файла не найден, то используется конфигурация по умолчанию.
+
+Опция `-config` заставляет утилиту использовать другой файл конфигурации.
+
+Конфигурация по умолчанию с комментариями (комментарии не должны находиться в файле):
+
+```json
+{
+  "version": "1.0.0",           // Версия файла конфигурации
+  "versionFile": "VERSION",     // Имя файла-версии
+  "ignoreInvalidCommits": false // Игнорировать неверные коммиты (не выпадать с ошибкой)
+}
+```
+
+---
+
+## Как утилита определяет тип релиза
+
+*bump-version* сканирует историю коммитов с момента последнего релиза и по типам Conventional Commits определяет необходимое повышение версии:
+
+- Если есть хоть один коммит с пометкой `BREAKING CHANGE` или восклицательным знаком после типа коммита — повышается MAJOR версия.
+- Иначе, если есть коммиты типа `feat` — повышается MINOR версия.
+- Иначе, если есть коммиты типа `fix` — повышается PATCH версия.
+- Если нет соответствующих коммитов — версия остаётся без изменений (в таком случае утилита выдаст предупреждение об этом и успешно завершит свою работу без изменений).
+
+---
+
+## Файлы, которые генерирует утилита
+
+- `CHANGELOG.md` — авто-сгенерированный журнал изменений, сгруппированный по версиям и типам изменений с соответствующими хэшами коммитов.
+- Файл-версии (`VERSION`) — содержит строку с текущей версией.
+- Git-коммит с сообщением релиза (по умолчанию `chore: release X.Y.Z`).
+- Git-тэг с именем релиза (`vX.Y.Z`).
+
+---
+
+## Часто задаваемые вопросы (FAQ)
+
+Q: Что произойдёт, если в истории нет коммитов, соответствующих Conventional Commits?
+A: Утилита выводит ошибку или предупреждение о проигнорировании таких коммитов. Вам прийдется сделать `git rebase -i` для исправления коммитов.
+
+---
+
+## Контрибьютеры
+
+- Даниил Степанов <sds@sigma-is.ru>
