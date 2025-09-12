@@ -56,10 +56,10 @@
 
 В директории `build/` после сборки утилиты ожидаемые файлы:
 
-- `linux/bump-version` — Linux (x86_64)
-- `macos-x86_64/bump-version` — macOS (x86_64)
+- `linux-amd64/bump-version` — Linux (x86_64)
+- `macos-amd64/bump-version` — macOS (x86_64)
 - `macos-arm64/bump-version` — macOS (ARM64)
-- `windows/bump-version.exe` — Microsoft Windows (x86_64)
+- `windows-amd64/bump-version.exe` — Microsoft Windows (x86_64)
 
 ---
 
@@ -224,12 +224,12 @@ bump-version
 
 - Вывести журнал изменений этой версии без добавления их в файл Changelog:
 ```bash
-bump-version preview changelog
+bump-version preview-changelog
 ```
 
 - Добавить хук в Git для автоматической проверки сообщений коммитов перед каждым коммитом:
 ```bash
-bump-version add hook
+bump-version add-hook
 ```
 
   Хуки могут мешать при скваше коммитов и частом использовании `git rebase`,
@@ -240,7 +240,7 @@ bump-version add hook
 
 - Удалить хук в Git для автоматической проверки сообщений коммитов:
 ```bash
-bump-version remove hook
+bump-version remove-hook
 ```
 
 - Проверить только правильность коммитов с последнего релиза (без выпуска версии), вывести все коммиты, не соответствующие Conventional Commits:
@@ -250,17 +250,22 @@ bump-version lint
 
 - Проверить только правильность коммитов во всей истории коммитов (без выпуска версии), вывести все коммиты, не соответствующие Conventional Commits:
 ```bash
-bump-version lint all
+bump-version lint-all
 ```
 
-- Вывести информацию о текущей версии вашей программы:
+- Проверить правильность предоставленного сообщения коммита:
 ```bash
-bump-version your version
+bump-version lint-commit "fix: resolve crash on login"
 ```
 
-- Вывести информацию о следующей версии вашей программы без внесения каких-либо изменений:
+- Вывести информацию о текущей версии вашей программы и выйти:
 ```bash
-bump-version next version
+bump-version my-version
+```
+
+- Вывести информацию о следующей версии вашей программы и выйти без внесения каких-либо изменений:
+```bash
+bump-version next-version
 ```
 
 - Получить справку утилиты:
@@ -275,12 +280,17 @@ bump-version version
 
 - Использовать другой конфигурационный файл:
 ```bash
-bump-version -config other-bump-version-config.json команда
+bump-version команда -config other-bump-version-config.json 
 ```
 
 - Добавить конфигурационный файл `bump-version.json` в корень проекта:
 ```bash
-bump-version init config
+bump-version init-config
+```
+
+- Опция `-force` подавляет вопросы вроде "Вы уверены, что хотите перезаписать файл?"
+```bash
+bump-version -force init-config
 ```
 
 ### Настройки утилиты
@@ -290,30 +300,15 @@ bump-version init config
 
 Опция `-config` указывает утилите использовать другой файл конфигурации.
 
-Конфигурация по умолчанию:
-
-```json
-{
-  "version": "1.0.0",
-  "versionFilename": "VERSION",
-  "ignoreInvalidCommits": false,
-  "versionTagFormat": "v{major}.{minor}.{patch}",
-  "includeSections": [
-    "BREAKING CHANGE",
-    "feat",
-    "fix"
-  ]
-}
-```
-
 Поля файла конфигурации:
 
 - `"version"` — версия файла конфигурации.
-- `"versionFilename"` — имя файла-версии.
+- `"versionFilenames"` — имена файлов-версий.
+- `"changeLogFilename"` — имя файла ChangeLog.
 - `"ignoreInvalidCommits"` — игнорировать неверные коммиты (не выпадать с ошибкой).
-- `"versionTagFormat"` — формат тэгов версии для Git. Подстроки `{major}`, `{minor}`,
-  `{patch}` подставляются на мажорную, минорную, патч номера версии соответственно.
-- `"includeSections"` — список типов коммитов, которые нужно включить в CHANGELOG.
+- `"versionTagFormat"` — формат тэгов версии для Git. Подстрока `{version}` подставляется
+  на семантическую версию X.Y.Z.
+- `"allowedCommitKinds"` — список разрешенных типов коммитов.
 
 Каждое поле присутствующее в конфигурационном файле перезаписывает значение по умолчанию.
 

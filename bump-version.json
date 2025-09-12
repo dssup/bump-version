@@ -1,0 +1,12 @@
+{
+  "version": "1.0.0",
+  "versionFilenames": ["VERSION"],
+  "changeLogFilename": "CHANGELOG.md",
+  "ignoreInvalidCommits": false,
+  "versionTagFormat": "v{version}",
+  "includeSections": [
+    "BREAKING CHANGE",
+    "feat",
+    "fix"
+  ]
+}
