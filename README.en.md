@@ -56,10 +56,10 @@ In short — anywhere there is a Go compiler.
 
 After building, the `build/` directory contains the expected files:
 
-- `linux/bump-version` — Linux (x86_64)
-- `macos-x86_64/bump-version` — macOS (x86_64)
+- `linux-amd64/bump-version` — Linux (x86_64)
+- `macos-amd64/bump-version` — macOS (x86_64)
 - `macos-arm64/bump-version` — macOS (ARM64)
-- `windows/bump-version.exe` — Microsoft Windows (x86_64)
+- `windows-amd64/bump-version.exe` — Microsoft Windows (x86_64)
 
 ---
 
@@ -102,11 +102,11 @@ The *bump-version* repository can serve as an example/reference for all these po
 An atomic commit contains a single logical change. It should:
 
 - Address one task: fix a bug, add one small feature, change one config file, etc.
-- Have a meaningful header in Conventional Commits format (type[scope]: short verb) that reflects the change.
+- Have a meaningful header in Conventional Commits format (kind[scope]: short verb) that reflects the change.
 - Not mix different kinds of changes: for example, do not include formatting, bug fix, and feature in one commit. Semantically different changes should be split into separate commits (e.g., `style: format files` + `fix(scope): correct null pointer`).
 
 Why this matters:
-- *bump-version* analyzes history based on commit types (feat/fix/BREAKING CHANGE). If a commit contains multiple semantic types, the utility may misidentify the release type or put changes into the wrong CHANGELOG section.
+- *bump-version* analyzes history based on commit kinds (feat/fix/BREAKING CHANGE). If a commit contains multiple semantic types, the utility may misidentify the release type or put changes into the wrong CHANGELOG section.
 - Atomic commits simplify review, rollback, and debugging (easier to find the problematic change via `git bisect`).
 - When automatically generating a CHANGELOG, each commit lands in the correct section (Features, Bug Fixes, etc.), making the log clear and useful.
 
@@ -163,7 +163,7 @@ In short:
 Commit header format:
 
 ```ascii
-commit_type(scope): commit_title
+commit_kind(scope): commit_title
 
 commit_body
 ```
@@ -174,7 +174,7 @@ Scope is encouraged — it indicates which module or area the commit affects.
 
 The header must start with an imperative present-tense verb, without a trailing period, starting with a lowercase letter. Scope is an abstract module name or unique source file name.
 
-Brief explanation of commit types:
+Brief explanation of commit kinds:
 
 - feat — new features that change program functionality.
   Example: `feat: add user authentication`
@@ -226,19 +226,19 @@ This command performs auto-detection from commits, updates the version file, upd
 
 - Show the changelog for this release without writing it to the Changelog file:
 ```bash
-bump-version preview changelog
+bump-version preview-changelog
 ```
 
 - Add a Git hook to validate commit messages before each commit:
 ```bash
-bump-version add hook
+bump-version add-hook
 ```
 
   Hooks may interfere with squashing and frequent rebases, so the hook is not installed by default. To just validate commits since the last release use `bump-version lint`. Also, if `ignoreInvalidCommits` is not set to `true` in the config file, the utility will fail on invalid commits.
 
-- Remove the Git hook:
+- Remove the Git hook that validates commit messages before each commit:
 ```bash
-bump-version remove hook
+bump-version remove-hook
 ```
 
 - Validate commits since the last release (no release), listing commits that do not match Conventional Commits:
@@ -248,17 +248,22 @@ bump-version lint
 
 - Validate all commits in history (no release), listing commits that do not match Conventional Commits:
 ```bash
-bump-version lint all
+bump-version lint-all
 ```
 
-- Show current program version:
+- Validate the provided commit message:
 ```bash
-bump-version your version
+bump-version lint-commit "fix: resolve crash on login"
 ```
 
-- Show next version (no changes applied):
+- Show the current version of your program and exit:
 ```bash
-bump-version next version
+bump-version my-version
+```
+
+- Show the next version of your program and exit (no changes applied):
+```bash
+bump-version next-version
 ```
 
 - Show help:
@@ -273,12 +278,17 @@ bump-version version
 
 - Use a different config file:
 ```bash
-bump-version -config other-bump-version-config.json command
+bump-version command -config other-bump-version-config.json 
 ```
 
 - Add a config file `bump-version.json` to the project root:
 ```bash
-bump-version init config
+bump-version init-config
+```
+
+- The `-force` option suppresses the prompts like "Are you sure you want to overwrite this file?"
+```bash
+bump-version -force init-config
 ```
 
 ### Utility settings
@@ -290,27 +300,15 @@ The `-config` option points the utility to another config file.
 
 Default configuration:
 
-```json
-{
-  "version": "1.0.0",
-  "versionFilename": "VERSION",
-  "ignoreInvalidCommits": false,
-  "versionTagFormat": "v{major}.{minor}.{patch}",
-  "includeSections": [
-    "BREAKING CHANGE",
-    "feat",
-    "fix"
-  ]
-}
-```
-
 Config file fields:
 
 - `"version"` — configuration file version.
-- `"versionFilename"` — name of the version file.
+- `"versionFilenames"` — names of the version files.
+- `"changeLogFilename"` — name of the ChangeLog file.
 - `"ignoreInvalidCommits"` — ignore invalid commits (do not fail on them).
-- `"versionTagFormat"` — Git tag format for releases. Substitutions `{major}`, `{minor}`, `{patch}` are replaced with the respective version numbers.
-- `"includeSections"` — list of commit types to include in the CHANGELOG.
+- `"versionTagFormat"` — Git tag format for releases. Substitution `{version}`
+  is replaced with the semantic version X.Y.Z.
+- `"allowedCommitKinds"` — list of allowed commit kinds.
 
 Each field present in the configuration file overrides the default.
 
@@ -320,7 +318,7 @@ Each field present in the configuration file overrides the default.
 
 *bump-version* scans commits since the last release and determines the required version bump based on Conventional Commit types:
 
-- If there is at least one commit with `BREAKING CHANGE` or an exclamation mark after the commit type — bump MAJOR.
+- If there is at least one commit with `BREAKING CHANGE` or an exclamation mark after the commit kind — bump MAJOR.
 - Else if there are `feat` commits — bump MINOR.
 - Else if there are `fix` commits — bump PATCH.
 - If there are no relevant commits — the version does not change (the utility will warn and exit successfully without making changes).
@@ -353,7 +351,7 @@ Each field present in the configuration file overrides the default.
 
 ## Files generated by the utility
 
-- `CHANGELOG.md` — automatically generated changelog grouped by versions and change types with commit hashes.
+- `CHANGELOG.md` — automatically generated changelog grouped by versions and change kinds with commit hashes.
 - Version file (`VERSION`) — contains a single line with the current version.
 - A Git commit with the release message (by default `chore: release X.Y.Z`).
 - A Git tag with the release name (e.g., `vX.Y.Z`).
