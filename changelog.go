@@ -17,7 +17,7 @@ func generateChangelog(currentVersion, newVersion Version, commitStats CommitSta
 	newChangeLog := generateNewChangelogHead(currentVersion, newVersion, commitStats)
 
 	// Merge with the current Changelog if it exists
-	if _, err := os.Stat(cfg.ChangeLogFilename); err == nil {
+	if fileExists(cfg.ChangeLogFilename) {
 		newChangeLog.WriteByte('\n')
 
 		// Read old changelog file
