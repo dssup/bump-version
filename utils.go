@@ -9,6 +9,8 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 func readJSONFile(name string, v any) error {
@@ -107,4 +109,34 @@ func fileExists(path string) bool {
 		return false
 	}
 	return true
+}
+
+func IsHexDigit(r rune) bool {
+	return (r >= '0' && r <= '9') || (r >= 'a' && r <= 'f') || (r >= 'A' && r <= 'F')
+}
+
+func IsUpperHexDigit(r rune) bool {
+	return (r >= '0' && r <= '9') || (r >= 'A' && r <= 'F')
+}
+
+func IsLowerHexDigit(r rune) bool {
+	return (r >= '0' && r <= '9') || (r >= 'a' && r <= 'f')
+}
+
+// HasLeadingWhitespace reports whether s begins with a Unicode whitespace rune.
+func HasLeadingWhitespace(s string) bool {
+	if s == "" {
+		return false
+	}
+	r, _ := utf8.DecodeRuneInString(s)
+	return unicode.IsSpace(r)
+}
+
+// HasTrailingWhitespace reports whether s ends with a Unicode whitespace rune.
+func HasTrailingWhitespace(s string) bool {
+	if s == "" {
+		return false
+	}
+	r, _ := utf8.DecodeLastRuneInString(s)
+	return unicode.IsSpace(r)
 }
