@@ -145,7 +145,7 @@ func main() {
 
 		// Iterate over the chosen commits and validate them
 		for _, message := range gitCommits {
-			_, err := parseConventionalCommit(message, false, cfg.AllowedCommitKinds)
+			_, err := parseConventionalCommit(message, true, cfg.AllowedCommitKinds)
 			if err != nil {
 				hasInvalidCommits = true
 				fmt.Fprintf(os.Stderr,
