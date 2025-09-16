@@ -31,7 +31,7 @@ func bumpVersion(cfg *Config) error {
 
 	// Determine new version based on the processed commits
 	newVersion := currentVersion
-	newVersion.Increment(commitStats.HasBreakingChange, len(commitStats.Features) != 0)
+	newVersion.Increment(commitStats.HasBreakingChange, commitStats.HasNewFeatures())
 	newVersionStr := newVersion.ToString()
 
 	fmt.Printf("Bumping next release version %s...\n", newVersionStr)

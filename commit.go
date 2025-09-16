@@ -25,11 +25,16 @@ type CommitStats struct {
 	HasBreakingChange bool
 }
 
-func (s CommitStats) VersionCanBeIncremented() bool {
-	hasNewFeatures := len(s.Features) != 0
-	hasNewFixes := len(s.Fixes) != 0
+func (s CommitStats) HasNewFeatures() bool {
+	return len(s.Features) != 0
+}
 
-	return hasNewFeatures || hasNewFixes
+func (s CommitStats) HasNewFixes() bool {
+	return len(s.Fixes) != 0
+}
+
+func (s CommitStats) VersionCanBeIncremented() bool {
+	return s.HasNewFeatures() || s.HasNewFixes()
 }
 
 var conventionalCommitRegex = regexp.MustCompile(

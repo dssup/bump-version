@@ -74,7 +74,7 @@ func main() {
 		}
 
 		newVersion := currentVersion
-		newVersion.Increment(commitStats.HasBreakingChange, len(commitStats.Features) != 0)
+		newVersion.Increment(commitStats.HasBreakingChange, commitStats.HasNewFeatures())
 
 		newChangeLog := generateNewChangelogHead(currentVersion, newVersion, commitStats)
 		fmt.Println(newChangeLog.String())
@@ -181,7 +181,7 @@ func main() {
 		newVersion := currentVersion
 
 		if commitStats.VersionCanBeIncremented() {
-			newVersion.Increment(commitStats.HasBreakingChange, len(commitStats.Features) != 0)
+			newVersion.Increment(commitStats.HasBreakingChange, commitStats.HasNewFeatures())
 		} else {
 			warnNoCommitsThatCanIncrementCurrentVersion()
 		}
