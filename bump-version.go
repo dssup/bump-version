@@ -244,7 +244,7 @@ Common options:
   -config filename  use another config filename instead of default
                     (default config name: bump-version.json)
   -force            suppress the prompts like "Are you sure you want to
-	                  overwrite this file?"
+                    overwrite this file?"
 If no command is specified, the default command to run is bump.
 `, programName)
 
