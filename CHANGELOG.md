@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](///compare/v0.1.1...v0.1.2) (2025-09-16)
+
+
+### Bug Fixes
+
+* **usage:** ensure option descriptions have proper alignment f1bbf77
+
 ## [0.1.1](///compare/v0.1.0...v0.1.1) (2025-09-16)
 
 
@@ -14,4 +21,5 @@
 
 
 * add the initial implementation of the utility ac773e5
+
 
