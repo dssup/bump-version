@@ -230,6 +230,8 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%s: unknown command %s\n\n", programName, os.Args[1])
 		printHelpAndExit()
 	}
+
+	// NOTE: Commands may return so there should not be any code
 }
 
 func printHelpAndExit() {
