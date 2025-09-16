@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func bumpVersion(cfg *Config) error {
@@ -63,7 +64,12 @@ func bumpVersion(cfg *Config) error {
 	}
 
 	// Commit release
-	if _, errOut, err := getCommandOutput("git", "commit", "-m", "chore(release): "+newVersionStr); err != nil {
+	bumpVersionCommitMessage := strings.ReplaceAll(
+		cfg.BumpVersionCommit,
+		versionTagFormatSubst,
+		newVersionStr,
+	)
+	if _, errOut, err := getCommandOutput("git", "commit", "-m", bumpVersionCommitMessage); err != nil {
 		return fmt.Errorf("error committing changes to Git: %s", errOut)
 	}
 

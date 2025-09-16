@@ -311,6 +311,7 @@ Config file fields:
 - `"versionTagFormat"` — Git tag format for releases. Substitution `{version}`
   is replaced with the semantic version X.Y.Z.
 - `"allowedCommitKinds"` — list of allowed commit kinds.
+- `"bumpVersionCommit"` — version bump commit message format.
 
 Each field present in the configuration file overrides the default.
 

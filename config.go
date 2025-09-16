@@ -17,6 +17,7 @@ type Config struct {
 	IgnoreInvalidCommits bool     `json:"ignoreInvalidCommits"`
 	VersionTagFormat     string   `json:"versionTagFormat"`
 	AllowedCommitKinds   []string `json:"allowedCommitKinds"`
+	BumpVersionCommit    string   `json:"bumpVersionCommit"`
 }
 
 // getDefaultConfig returns the default config as read-only.
@@ -41,6 +42,7 @@ func getDefaultConfig() Config {
 			"style",
 			"test",
 		},
+		BumpVersionCommit: "chore(release): {version}",
 	}
 }
 
@@ -92,6 +94,9 @@ func loadConfig(name string) (Config, error) {
 	}
 	if cfg.AllowedCommitKinds == nil {
 		cfg.AllowedCommitKinds = defaultConfig.AllowedCommitKinds
+	}
+	if cfg.BumpVersionCommit == "" {
+		cfg.BumpVersionCommit = defaultConfig.BumpVersionCommit
 	}
 
 	return cfg, nil

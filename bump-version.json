@@ -8,5 +8,6 @@
     "BREAKING CHANGE",
     "feat",
     "fix"
-  ]
+  ],
+  "bumpVersionCommit": "chore(release): {version}"
 }
