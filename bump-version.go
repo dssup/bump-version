@@ -128,7 +128,7 @@ func main() {
 			os.Exit(ExitUsage)
 		}
 
-		if _, err := parseConventionalCommit(args[1], false, cfg.AllowedCommitKinds); err != nil {
+		if _, err := ParseConventionalCommit(args[1], false, cfg.AllowedCommitKinds); err != nil {
 			fatalf("invalid commit message: %v", err)
 			os.Exit(ExitFailure)
 		}
@@ -150,7 +150,7 @@ func main() {
 
 		// Iterate over the chosen commits and validate them
 		for _, message := range gitCommits {
-			_, err := parseConventionalCommit(message, true, cfg.AllowedCommitKinds)
+			_, err := ParseConventionalCommit(message, true, cfg.AllowedCommitKinds)
 			if err != nil {
 				hasInvalidCommits = true
 				fmt.Fprintf(os.Stderr,
