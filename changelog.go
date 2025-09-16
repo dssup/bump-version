@@ -70,7 +70,7 @@ func generateNewChangelogHead(currentVersion, newVersion Version, commitStats Co
 	)
 
 	// Write sorted new feature list if any
-	if len(commitStats.Features) != 0 {
+	if commitStats.HasNewFeatures() {
 		// Write header
 		newChangeLog.WriteString("\n\n### Features\n\n\n")
 
@@ -89,7 +89,7 @@ func generateNewChangelogHead(currentVersion, newVersion Version, commitStats Co
 	}
 
 	// Write sorted fix list if any
-	if len(commitStats.Fixes) != 0 {
+	if commitStats.HasNewFixes() {
 		// Write header
 		newChangeLog.WriteString("\n\n### Bug Fixes\n\n")
 
