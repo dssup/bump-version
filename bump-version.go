@@ -162,7 +162,7 @@ func main() {
 	case "my-version":
 		cfg := fatalOnErr2(loadConfig(configFilename))
 		currentVersion := fatalOnErr2(getCurrentVersionByGitTag(cfg.VersionTagFormat))
-		fmt.Println(currentVersion)
+		fmt.Println(currentVersion.ToString())
 
 	case "next-version":
 		cfg := fatalOnErr2(loadConfig(configFilename))
@@ -176,7 +176,7 @@ func main() {
 		newVersion := currentVersion
 		newVersion.Increment(commitStats.HasBreakingChange, len(commitStats.Features) != 0)
 
-		fmt.Println(newVersion)
+		fmt.Println(newVersion.ToString())
 
 	case "init-config":
 		defaultConfig := getDefaultConfig()
@@ -211,7 +211,7 @@ func main() {
 			fatalf("could not parse version file %s: %v", filename, err)
 		}
 
-		fmt.Println(version)
+		fmt.Println(version.ToString())
 
 	case "help":
 		printHelpAndExit()
