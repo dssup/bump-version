@@ -93,3 +93,14 @@ func fatalf(format string, a ...any) {
 	fmt.Fprintf(os.Stderr, programName+": "+format+"\n", a...)
 	os.Exit(ExitFailure)
 }
+
+func fileExists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return true
+}

@@ -87,14 +87,12 @@ func main() {
 %s lint-commit "$COMMIT_MESSAGE"
 `, programName)
 
-		if !forceMode {
-			// If the hook file already exists, ask the user to confirm overwriting it
-			if _, err := os.Stat(preCommiHookPath); err == nil {
-				question := "The hook file already exists. Do you want to overwrite it?"
-				if !askYesNo(os.Stdin, os.Stdout, question, false) {
-					fmt.Println("Canceled.")
-					return
-				}
+		// If the hook file already exists, ask the user to confirm overwriting it
+		if !forceMode && fileExists(preCommiHookPath) {
+			question := "The hook file already exists. Do you want to overwrite it?"
+			if !askYesNo(os.Stdin, os.Stdout, question, false) {
+				fmt.Println("Canceled.")
+				return
 			}
 		}
 
@@ -183,14 +181,15 @@ func main() {
 	case "init-config":
 		defaultConfig := getDefaultConfig()
 
-		if !forceMode {
-			// If the config file already exists, ask the user to confirm overwriting it
-			if _, err := os.Stat(defaultConfigFilename); err == nil {
-				question := fmt.Sprintf("Config file %s already exists. Do you want to overwrite it?", defaultConfigFilename)
-				if !askYesNo(os.Stdin, os.Stdout, question, false) {
-					fmt.Println("Canceled.")
-					return
-				}
+		// If the config file already exists, ask the user to confirm overwriting it
+		if !forceMode && fileExists(defaultConfigFilename) {
+			question := fmt.Sprintf(
+				"Config file %s already exists. Do you want to overwrite it?",
+				defaultConfigFilename,
+			)
+			if !askYesNo(os.Stdin, os.Stdout, question, false) {
+				fmt.Println("Canceled.")
+				return
 			}
 		}
 

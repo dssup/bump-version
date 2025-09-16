@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"strings"
 )
 
@@ -53,11 +52,8 @@ func loadConfig(name string) (Config, error) {
 	// object.
 	if name == "" {
 		name = defaultConfigFilename
-		if _, err := os.Stat(name); err != nil {
-			if os.IsNotExist(err) {
-				return defaultConfig, nil
-			}
-			return Config{}, err
+		if !fileExists(name) {
+			return defaultConfig, nil
 		}
 	}
 
