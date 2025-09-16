@@ -25,6 +25,13 @@ type CommitStats struct {
 	HasBreakingChange bool
 }
 
+func (s CommitStats) VersionCanBeIncremented() bool {
+	hasNewFeatures := len(s.Features) != 0
+	hasNewFixes := len(s.Fixes) != 0
+
+	return hasNewFeatures || hasNewFixes
+}
+
 var conventionalCommitRegex = regexp.MustCompile(
 	`(?m)^(?P<hash>[0-9a-f]{7,40})\s+(?P<kind>\w+)(\((?P<scope>[\w/\-\.]+)\))?(?P<breaking>!)?: (?P<description>.+)(\n(?P<body>.+))?(\n(?P<footer>.+))?$`,
 )
@@ -157,4 +164,8 @@ func parseConventionalCommit(message string, hasHash bool, allowedKinds []string
 	commit.Breaking = reGroup(match, names, "breaking") != "" || strings.Contains(commit.Footer, "BREAKING CHANGE")
 
 	return commit, nil
+}
+
+func warnNoCommitsThatCanIncrementCurrentVersion() {
+	fmt.Fprintln(os.Stderr, programName+": no commits that can increment current version")
 }

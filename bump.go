@@ -23,6 +23,11 @@ func bumpVersion(cfg *Config) error {
 		return err
 	}
 
+	if !commitStats.VersionCanBeIncremented() {
+		warnNoCommitsThatCanIncrementCurrentVersion()
+		return nil
+	}
+
 	// Determine new version based on the processed commits
 	newVersion := currentVersion
 	newVersion.Increment(commitStats.HasBreakingChange, len(commitStats.Features) != 0)

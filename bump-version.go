@@ -68,6 +68,11 @@ func main() {
 
 		commitStats := fatalOnErr2(processCommitMessages(curTag, cfg.IgnoreInvalidCommits, cfg.AllowedCommitKinds))
 
+		if !commitStats.VersionCanBeIncremented() {
+			warnNoCommitsThatCanIncrementCurrentVersion()
+			return
+		}
+
 		newVersion := currentVersion
 		newVersion.Increment(commitStats.HasBreakingChange, len(commitStats.Features) != 0)
 
@@ -174,7 +179,12 @@ func main() {
 		commitStats := fatalOnErr2(processCommitMessages(curTag, cfg.IgnoreInvalidCommits, cfg.AllowedCommitKinds))
 
 		newVersion := currentVersion
-		newVersion.Increment(commitStats.HasBreakingChange, len(commitStats.Features) != 0)
+
+		if commitStats.VersionCanBeIncremented() {
+			newVersion.Increment(commitStats.HasBreakingChange, len(commitStats.Features) != 0)
+		} else {
+			warnNoCommitsThatCanIncrementCurrentVersion()
+		}
 
 		fmt.Println(newVersion.ToString())
 
