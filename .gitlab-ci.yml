@@ -33,6 +33,7 @@ format-check:
     - if [ "$CHANGED" -ne 0 ]; then echo "Files not gofumpt-formatted:"; gofumpt -l .; exit 1; fi
   cache:
     policy: pull-push
+  allow_failure: false
   rules:
     - if: $CI_COMMIT_BRANCH
 
