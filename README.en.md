@@ -91,7 +91,7 @@ The utility is statically built and has no runtime dependencies, so installation
 ### Prerequisites
 
 - The repository must use Git.
-  IMPORTANT: Use `git push --tags`. The `--tags` option also pushes
+  **IMPORTANT:** Use `git push --tags`. The `--tags` option also pushes
   the Git tags that are used by this utility to determine the current version.
 - Make atomic commits (one logical change per commit).
 - Follow Semantic Versioning for releases.
