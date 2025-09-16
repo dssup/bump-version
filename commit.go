@@ -23,6 +23,7 @@ type CommitStats struct {
 	Features          []Commit
 	Fixes             []Commit
 	HasBreakingChange bool
+	AllCommits        []Commit
 }
 
 func (s CommitStats) HasNewFeatures() bool {
@@ -39,8 +40,9 @@ func (s CommitStats) VersionCanBeIncremented() bool {
 
 func processCommitMessages(sinceTag string, ignoreInvalidCommits bool, allowedKinds []string) (CommitStats, error) {
 	commitStats := CommitStats{
-		Features: make([]Commit, 0, 4096),
-		Fixes:    make([]Commit, 0, 4096),
+		Features:   make([]Commit, 0, 4096),
+		Fixes:      make([]Commit, 0, 4096),
+		AllCommits: make([]Commit, 0, 4096),
 	}
 
 	gitCommits, err := getGitCommitLines(sinceTag)
@@ -82,6 +84,8 @@ func processCommitMessages(sinceTag string, ignoreInvalidCommits bool, allowedKi
 		case "fix":
 			commitStats.Fixes = append(commitStats.Fixes, commit)
 		}
+
+		commitStats.AllCommits = append(commitStats.AllCommits, commit)
 	}
 
 	if hasInvalidCommits && !ignoreInvalidCommits {
