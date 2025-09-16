@@ -1,0 +1,41 @@
+stages:
+  - fmt
+  - lint
+
+variables:
+  GOMODCACHE: "$CI_PROJECT_DIR/.cache/pkg/mod"
+  GOPATH: "$CI_PROJECT_DIR/.cache/gopath"
+  GOFLAGS: "-mod=readonly"
+
+.default: &default
+  image: golang:1.25.1
+  before_script:
+    - mkdir -p "$GOMODCACHE" "$GOPATH"
+    - export PATH="$GOPATH/bin:$PATH"
+    - go env
+    - go version
+
+format-check:
+  <<: *default
+  stage: fmt
+  script:
+    # install gofumpt
+    - go install mvdan.cc/gofumpt@v0.3.1
+    # run gofumpt in check mode across modules/dirs
+    - CHANGED=$(gofumpt -l . | wc -l)
+    - if [ "$CHANGED" -ne 0 ]; then echo "Files not gofumpt-formatted:"; gofumpt -l .; exit 1; fi
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
+lint:
+  <<: *default
+  stage: lint
+  script:
+    # install golangci-lint (change version as needed)
+    - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.59.0
+    - export PATH="$(go env GOPATH)/bin:$PATH"
+    # run golangci-lint (adjust ./... or packages as needed)
+    - golangci-lint run ./...
+  allow_failure: false
+  rules:
+    - if: $CI_COMMIT_BRANCH
