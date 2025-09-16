@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](///compare/v0.1.2...v0.1.3) (2025-09-16)
+
+
+### Bug Fixes
+
+* ensure version numbers in version, my-version, next-version commands are printed as X.Y.Z 4b65de8
+
 ## [0.1.2](///compare/v0.1.1...v0.1.2) (2025-09-16)
 
 
@@ -21,5 +28,6 @@
 
 
 * add the initial implementation of the utility ac773e5
+
 
 
