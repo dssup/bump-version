@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](///compare/v0.1.3...v0.1.4) (2025-09-16)
+
+
+### Bug Fixes
+
+* ensure the version cannot be bumped if there's no commits that can increment it cc80e11
+
 ## [0.1.3](///compare/v0.1.2...v0.1.3) (2025-09-16)
 
 
@@ -28,6 +35,7 @@
 
 
 * add the initial implementation of the utility ac773e5
+
 
 
 
