@@ -6,7 +6,17 @@ import (
 	"os"
 	"slices"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
+
+const (
+	CommitKindFeat   = "feat"
+	CommitKindFix    = "fix"
+	CommitKindRevert = "revert"
+)
+
+var ErrFoundInvalidCommits = errors.New("found invalid commits")
 
 type Commit struct {
 	Hash        string
@@ -19,88 +29,224 @@ type Commit struct {
 	RefersTo    []string // commit hashes this commit refers to
 }
 
+func (c *Commit) ShortHash() string {
+	return ensureShortCommitHash(c.Hash)
+}
+
 type CommitStats struct {
 	Features          []Commit
 	Fixes             []Commit
+	Reverts           []Commit
 	HasBreakingChange bool
-	AllCommits        []Commit
-}
+	HasNewFeatures    bool
+	HasNewFixes       bool
 
-func (s CommitStats) HasNewFeatures() bool {
-	return len(s.Features) != 0
-}
-
-func (s CommitStats) HasNewFixes() bool {
-	return len(s.Fixes) != 0
+	// Commits from before the tag that got
+	// reverted by reverts since the tag
+	RevertedPreTag []Commit
 }
 
 func (s CommitStats) VersionCanBeIncremented() bool {
-	return s.HasNewFeatures() || s.HasNewFixes()
+	return s.HasBreakingChange || s.HasNewFeatures || s.HasNewFixes
 }
 
 func processCommitMessages(sinceTag string, ignoreInvalidCommits bool, allowedKinds []string) (CommitStats, error) {
-	commitStats := CommitStats{
-		Features:   make([]Commit, 0, 4096),
-		Fixes:      make([]Commit, 0, 4096),
-		AllCommits: make([]Commit, 0, 4096),
-	}
-
-	gitCommits, err := getGitCommitLines(sinceTag)
+	allLines, err := getGitCommitLines("") // full history newest->oldest
 	if err != nil {
 		return CommitStats{}, err
 	}
 
 	hasInvalidCommits := false
 
-	// Process all commits in a single pass
-	for _, message := range gitCommits {
-		// Parse and validate commit
-		commit, err := ParseConventionalCommit(message, true, allowedKinds)
+	// parse into chronological order (oldest first)
+	var parsed []Commit
+	for i := len(allLines) - 1; i >= 0; i-- {
+		msg := allLines[i]
+		c, err := ParseConventionalCommit(msg, true, allowedKinds)
 		if err != nil {
-			hasInvalidCommits = true
-			if ignoreInvalidCommits {
-				fmt.Fprintf(os.Stderr,
-					"%s: WARNING: ignored invalid commit message: %s. Reason: %v\n",
-					programName, message, err,
-				)
-			} else {
-				fmt.Fprintf(os.Stderr,
-					"%s: ERROR: invalid commit message: %s. Reason: %v\n",
-					programName, message, err,
-				)
+			if sinceTag == "" {
+				hasInvalidCommits = true
+				logInvalidCommit(ignoreInvalidCommits, msg, err)
 			}
 			continue
 		}
-
-		// Determine if there's a breaking change
-		if commit.Breaking {
-			commitStats.HasBreakingChange = true
-		}
-
-		// Categorize commit by its kind
-		switch commit.Kind {
-		case "feat":
-			commitStats.Features = append(commitStats.Features, commit)
-		case "fix":
-			commitStats.Fixes = append(commitStats.Fixes, commit)
-		}
-
-		commitStats.AllCommits = append(commitStats.AllCommits, commit)
+		parsed = append(parsed, c)
 	}
 
 	if hasInvalidCommits && !ignoreInvalidCommits {
-		os.Exit(ExitFailure)
+		return CommitStats{}, ErrFoundInvalidCommits
+	}
+
+	// map commits by short hash and record their chronological index and
+	// whether they are pre-tag
+	byRef := make(map[string]Commit, len(parsed))
+	indexOf := make(map[string]int, len(parsed))
+
+	// true if commit is before the sinceTag boundary
+	preTag := make(map[string]bool, len(parsed))
+
+	// Build set of commits that are "sinceTag..HEAD"
+	sinceSet := make(map[string]bool)
+	if sinceTag != "" {
+		sinceLines, err := getGitCommitLines(sinceTag)
+		if err != nil {
+			return CommitStats{}, err
+		}
+
+		hasInvalidCommits := false
+
+		for _, msg := range sinceLines {
+			c, err := ParseConventionalCommit(msg, true, allowedKinds)
+			if err != nil {
+				hasInvalidCommits = true
+				logInvalidCommit(ignoreInvalidCommits, msg, err)
+			} else {
+				sinceSet[c.ShortHash()] = true
+			}
+		}
+
+		if hasInvalidCommits && !ignoreInvalidCommits {
+			return CommitStats{}, ErrFoundInvalidCommits
+		}
+	} else {
+		// no tag -> everything treated as in-window
+		for _, c := range parsed {
+			sinceSet[c.ShortHash()] = true
+		}
+	}
+
+	for i, c := range parsed {
+		ref := c.ShortHash()
+		byRef[ref] = c
+		indexOf[ref] = i
+		// consider a commit pre-tag if it's NOT in sinceSet
+		preTag[ref] = !sinceSet[ref]
+	}
+
+	// Walk chronologically, toggling reverted state.
+	reverted := make(map[string]bool)
+
+	// track commits from before the tag that get reverted by
+	// reverts seen since the tag
+	revertedPreTagSet := make(map[string]bool)
+
+	for _, c := range parsed {
+		cRef := c.ShortHash()
+
+		if c.Kind == CommitKindRevert {
+			// for each referenced commit, flip reverted state
+			for _, ref := range c.RefersTo {
+				ref = ensureShortCommitHash(ref)
+
+				if reverted[ref] {
+					delete(reverted, ref)
+
+					// if this is a revert-of-revert that restores a pre-tag commit,
+					// remove it from revertedPreTagSet
+					if preTag[ref] {
+						delete(revertedPreTagSet, ref)
+					}
+				} else {
+					reverted[ref] = true
+
+					// if this revert commit is in-window (sinceTag) and
+					// it reverts a pre-tag commit, record it
+					if sinceSet[cRef] && preTag[ref] {
+						revertedPreTagSet[ref] = true
+					}
+				}
+			}
+
+			continue
+		}
+
+		// Non-revert commits: nothing to do during the walk besides
+		// tracking existence (already done)
+	}
+
+	// Build final CommitStats including detection of pre-tag commits
+	// reverted by in-window reverts
+	commitStats := CommitStats{
+		Features:          make([]Commit, 0, 256),
+		Fixes:             make([]Commit, 0, 256),
+		Reverts:           make([]Commit, 0, 256),
+		HasBreakingChange: false,
+		HasNewFeatures:    false,
+		HasNewFixes:       false,
+		RevertedPreTag:    make([]Commit, 0, 64),
+	}
+
+	for short, c := range byRef {
+		// include only commits in the requested window
+		if !sinceSet[short] {
+			continue
+		}
+
+		// skip commits that are currently reverted
+		if reverted[short] {
+			continue
+		}
+
+		if c.Breaking {
+			commitStats.HasBreakingChange = true
+		}
+
+		switch c.Kind {
+		case CommitKindFeat:
+			commitStats.Features = append(commitStats.Features, c)
+			commitStats.HasNewFeatures = true
+		case CommitKindFix:
+			commitStats.Fixes = append(commitStats.Fixes, c)
+			commitStats.HasNewFixes = true
+		case CommitKindRevert:
+			commitStats.Reverts = append(commitStats.Reverts, c)
+		}
+	}
+
+	// Populate RevertedPreTag slice from the set
+	for ref := range revertedPreTagSet {
+		if c, ok := byRef[ref]; ok {
+			commitStats.RevertedPreTag = append(commitStats.RevertedPreTag, c)
+			if c.Breaking {
+				commitStats.HasBreakingChange = true
+			}
+			switch c.Kind {
+			case CommitKindFeat:
+				commitStats.HasNewFeatures = true
+			case CommitKindFix:
+				commitStats.HasNewFixes = true
+			}
+		} else if !ignoreInvalidCommits {
+			fmt.Fprintf(os.Stderr,
+				"%s: WARNING: commit with hash %s was not added to the list of reverted commits! It is most likely an invalid commit or a non-existent hash.\n",
+				programName, ref,
+			)
+		}
 	}
 
 	return commitStats, nil
 }
 
+func logInvalidCommit(ignoreInvalidCommits bool, commitMessage string, err error) {
+	if ignoreInvalidCommits {
+		fmt.Fprintf(os.Stderr,
+			"%s: WARNING: ignored invalid commit message: %s. Reason: %v\n",
+			programName, commitMessage, err,
+		)
+	} else {
+		fmt.Fprintf(os.Stderr,
+			"%s: ERROR: invalid commit message: %s. Reason: %v\n",
+			programName, commitMessage, err,
+		)
+	}
+}
+
 func getGitCommitLines(sinceTag string) ([]string, error) {
 	var args []string
 	if sinceTag != "" {
-		args = []string{"log", sinceTag + "..HEAD", "--oneline"}
+		args = []string{"log", sinceTag + "..HEAD", "--pretty=format:%H %s", "--abbrev=false"}
 	} else {
-		args = []string{"log", "--oneline"}
+		args = []string{"log", "--pretty=format:%H %s", "--abbrev=false"}
 	}
 
 	// Get all commits since the provided tag
@@ -136,6 +282,11 @@ func ParseConventionalCommit(message string, hasHash bool, allowedKinds []string
 		if HasLeadingWhitespace(line) || HasTrailingWhitespace(line) {
 			return Commit{}, fmt.Errorf("commit message line number %d (`%s`) should not have have leading or trailing whitespace", lineNo, line)
 		}
+	}
+
+	// Check for empty lines at the end of the commit message
+	for len(lines) >= 2 && strings.TrimSpace(lines[len(lines)-1]) == "" {
+		return Commit{}, errors.New("commit message should not have empty lines at the end of it")
 	}
 
 	commit := Commit{}
@@ -250,6 +401,13 @@ func ParseConventionalCommit(message string, hasHash bool, allowedKinds []string
 	if strings.HasSuffix(description, ".") {
 		return Commit{}, errors.New("commit message description should not end with period")
 	}
+	if r, _ := utf8.DecodeRuneInString(description); unicode.IsUpper(r) {
+		return Commit{}, errors.New("commit message description should not start with a capital letter")
+	}
+	const maxDescriptionCharacters = 120
+	if utf8.RuneCountInString(description) > maxDescriptionCharacters {
+		return Commit{}, fmt.Errorf("commit message description should not be more than %d characters", maxDescriptionCharacters)
+	}
 	commit.Description = description
 
 	// Validate kind against allowedKinds
@@ -319,7 +477,7 @@ func ParseConventionalCommit(message string, hasHash bool, allowedKinds []string
 	}
 
 	// Make sure revert commits have at least one reference to other commits
-	if commit.Kind == "revert" && len(commit.RefersTo) == 0 {
+	if commit.Kind == CommitKindRevert && len(commit.RefersTo) == 0 {
 		return Commit{}, errors.New("revert commits must have hashes of the commits they revert; add `Refs: ` attribute to commit footer")
 	}
 
@@ -342,8 +500,8 @@ func warnNoCommitsThatCanIncrementCurrentVersion() {
 }
 
 func parseCommitHash(hash string) (string, error) {
-	if len(hash) < 7 || len(hash) > 40 {
-		return "", errors.New("invalid commit hash length")
+	if len(hash) != 7 && len(hash) != 40 {
+		return "", errors.New("commit hash length must be either 7 or 40 characters long")
 	}
 
 	for _, digit := range hash {
@@ -353,6 +511,13 @@ func parseCommitHash(hash string) (string, error) {
 	}
 
 	return hash, nil
+}
+
+func ensureShortCommitHash(hash string) string {
+	if len(hash) > 7 {
+		return hash[:7]
+	}
+	return hash
 }
 
 func tryParseReference(line string, commit *Commit) error {

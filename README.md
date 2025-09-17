@@ -209,7 +209,16 @@ go run scripts/build.go
   Пример: `chore: update dependencies`
 
 - revert — откат предыдущих изменений.
-  Пример: `revert: revert "feat: add user authentication"`
+  Пример:
+
+  ```
+  revert: revert "feat: add user authentication"
+
+  Refs: 532a023, 22aeae8
+  ```
+
+  Поле `Refs` обязательно для этой утилиты, чтобы определить какие
+  коммиты отменяются.
 
 - BREAKING CHANGE — описание изменений, несовместимых с предыдущими версиями (может быть в теле коммита или как отдельный заголовок).
   Пример: `BREAKING CHANGE: The API endpoint has changed from /api/v1/users to /api/v2/users.`

@@ -19,7 +19,7 @@ func (v *Version) ToString() string {
 	return fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch)
 }
 
-func (v *Version) Increment(hasBreakingChange, hasFeatures bool) {
+func (v *Version) Increment(hasBreakingChange, hasFeatures, hasFixes bool) {
 	switch {
 	case hasBreakingChange:
 		v.Major++
@@ -28,7 +28,7 @@ func (v *Version) Increment(hasBreakingChange, hasFeatures bool) {
 	case hasFeatures:
 		v.Minor++
 		v.Patch = 0
-	default:
+	case hasFixes:
 		v.Patch++
 	}
 }

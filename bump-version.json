@@ -4,10 +4,5 @@
   "changeLogFilename": "CHANGELOG.md",
   "ignoreInvalidCommits": false,
   "versionTagFormat": "v{version}",
-  "includeSections": [
-    "BREAKING CHANGE",
-    "feat",
-    "fix"
-  ],
   "bumpVersionCommit": "chore(release): {version}"
 }

@@ -69,45 +69,35 @@ func generateNewChangelogHead(currentVersion, newVersion Version, commitStats Co
 		curDateStr,
 	)
 
-	// Write sorted new feature list if any
-	if commitStats.HasNewFeatures() {
-		// Write header
-		newChangeLog.WriteString("\n\n### Features\n\n\n")
-
-		// Stringify and sort feature list
-		sortedFeatures := make([]string, len(commitStats.Features))
-		for i, feature := range commitStats.Features {
-			sortedFeatures[i] = commitToChangelogRecord(feature)
-		}
-		sortChangeLogRecords(sortedFeatures)
-
-		// Write feature list
-		for _, feature := range sortedFeatures {
-			newChangeLog.WriteString(feature)
-			newChangeLog.WriteByte('\n')
-		}
-	}
-
-	// Write sorted fix list if any
-	if commitStats.HasNewFixes() {
-		// Write header
-		newChangeLog.WriteString("\n\n### Bug Fixes\n\n")
-
-		// Stringify and sort fix list
-		sortedFixes := make([]string, len(commitStats.Fixes))
-		for i, fix := range commitStats.Fixes {
-			sortedFixes[i] = commitToChangelogRecord(fix)
-		}
-		sortChangeLogRecords(sortedFixes)
-
-		// Write fix list
-		for _, fix := range sortedFixes {
-			newChangeLog.WriteString(fix)
-			newChangeLog.WriteByte('\n')
-		}
-	}
+	writeChangelogSection(&newChangeLog, "Features", commitStats.Features)
+	writeChangelogSection(&newChangeLog, "Bug Fixes", commitStats.Fixes)
+	writeChangelogSection(&newChangeLog, "Reverted Changes", commitStats.RevertedPreTag)
 
 	return newChangeLog
+}
+
+func writeChangelogSection(newChangeLog *bytes.Buffer, sectionName string, commits []Commit) {
+	if len(commits) == 0 {
+		return
+	}
+
+	// Write header
+	newChangeLog.WriteString("\n\n### ")
+	newChangeLog.WriteString(sectionName)
+	newChangeLog.WriteString("\n\n")
+
+	// Stringify and sort list
+	sorted := make([]string, len(commits))
+	for i, commit := range commits {
+		sorted[i] = commitToChangelogRecord(commit)
+	}
+	sortChangeLogRecords(sorted)
+
+	// Write record list
+	for _, record := range sorted {
+		newChangeLog.WriteString(record)
+		newChangeLog.WriteByte('\n')
+	}
 }
 
 func commitToChangelogRecord(c Commit) string {
@@ -116,9 +106,9 @@ func commitToChangelogRecord(c Commit) string {
 		breakingChange = " [BREAKING CHANGE]"
 	}
 	if c.Scope != "" {
-		return fmt.Sprintf("* **%s:**%s %s %s", c.Scope, breakingChange, c.Description, c.Hash)
+		return fmt.Sprintf("* **%s:**%s %s %s", c.Scope, breakingChange, c.Description, c.ShortHash())
 	}
-	return fmt.Sprintf("*%s %s %s", breakingChange, c.Description, c.Hash)
+	return fmt.Sprintf("*%s %s %s", breakingChange, c.Description, c.ShortHash())
 }
 
 func sortChangeLogRecords(records []string) {
