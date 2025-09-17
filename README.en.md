@@ -212,7 +212,16 @@ Brief explanation of commit kinds:
   Example: `chore: update dependencies`
 
 - revert — revert previous changes.
-  Example: `revert: revert "feat: add user authentication"`
+  Example:
+
+  ```
+  revert: revert "feat: add user authentication"
+
+  Refs: 532a023, 22aeae8
+  ```
+
+  The `Refs` attribute is necessary for this utility to determine
+  which commits are reverted.
 
 - BREAKING CHANGE — description of incompatible changes (may be in commit body or as a separate header).
   Example: `BREAKING CHANGE: The API endpoint has changed from /api/v1/users to /api/v2/users.`
@@ -225,7 +234,6 @@ bump-version
 ```
 
 This command performs auto-detection from commits, updates the version file, updates the Changelog, creates a release commit, and adds a Git tag.
-
 - Show the changelog for this release without writing it to the Changelog file:
 ```bash
 bump-version preview-changelog

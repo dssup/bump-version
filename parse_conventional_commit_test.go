@@ -68,7 +68,7 @@ func TestParseConventionalCommit_TableDriven(t *testing.T) {
 			message:      "0123456feat: x",
 			hasHash:      true,
 			allowedKinds: []string{"feat"},
-			want:         want{errContains: "commit message expected to have lowercase hexadecimal digits only"},
+			want:         want{errContains: "commit hash length must be either 7 or 40 characters long"},
 		},
 		{
 			name:         "kind scope bang",
@@ -120,10 +120,10 @@ func TestParseConventionalCommit_TableDriven(t *testing.T) {
 				"this is the body line 1",
 				"line 2",
 				"",
-				"Refs: 0123456, 89abcdef",
+				"Refs: 0123456, 89abcde",
 			}, "\n"),
 			allowedKinds: []string{"fix"},
-			want:         want{body: "this is the body line 1\nline 2", refersTo: []string{"0123456", "89abcdef"}},
+			want:         want{body: "this is the body line 1\nline 2", refersTo: []string{"0123456", "89abcde"}},
 		},
 		{
 			name: "breaking in footer",
