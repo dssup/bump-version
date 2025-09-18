@@ -24,7 +24,7 @@ cache:
     - .cache/pkg/mod
     - .cache/gopath
 
-format-check:
+fmt:
   <<: *default
   stage: fmt
   script:
