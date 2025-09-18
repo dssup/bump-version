@@ -6,13 +6,14 @@ stages:
 variables:
   GOMODCACHE: "$CI_PROJECT_DIR/.cache/pkg/mod"
   GOPATH: "$CI_PROJECT_DIR/.cache/gopath"
+  GOBIN: "$GOPATH/bin"
   GOFLAGS: "-mod=readonly"
 
 default: &default
   image: golang:1.25.1
   before_script:
-    - mkdir -p "$GOMODCACHE" "$GOPATH"
-    - export PATH="$GOPATH/bin:$PATH"
+    - mkdir -p "$GOMODCACHE" "$GOPATH" "$GOBIN"
+    - export PATH="$GOBIN:$PATH"
     - go env
     - go version
 
@@ -28,38 +29,44 @@ fmt:
   <<: *default
   stage: fmt
   script:
-    # install gofumpt if not already cached
-    - if [ ! -x "$GOPATH/bin/gofumpt" ]; then go install mvdan.cc/gofumpt@v0.4.0; fi
+    - if [ ! -x "$GOBIN/gofumpt" ]; then go install mvdan.cc/gofumpt@v0.8.0; fi
     - CHANGED=$(gofumpt -l . | wc -l)
     - if [ "$CHANGED" -ne 0 ]; then echo "Files not gofumpt-formatted:"; gofumpt -l .; exit 1; fi
   cache:
     policy: pull-push
-  allow_failure: false
   rules:
-    - if: $CI_COMMIT_BRANCH
+    - exists:
+        - "**/*.go"
 
 lint:
   <<: *default
   stage: lint
+  variables:
+    GOLANGCI_LINT_VERSION: "v2.4.0"
   script:
-    # install golangci-lint if not cached
-    - if [ ! -x "$GOPATH/bin/golangci-lint" ]; then curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$GOPATH/bin" v1.59.0; fi
-    - export PATH="$GOPATH/bin:$PATH"
-    - golangci-lint version
+    - if [ ! -x "$GOBIN/golangci-lint" ]; then
+        ARCHIVE="golangci-lint-${GOLANGCI_LINT_VERSION}-linux-amd64.tar.gz";
+        URL="https://github.com/golangci/golangci-lint/releases/download/${GOLANGCI_LINT_VERSION}/${ARCHIVE}";
+        curl -fsSL "$URL" -o /tmp/${ARCHIVE};
+        tar -xzf /tmp/${ARCHIVE} -C /tmp;
+        mv /tmp/golangci-lint-${GOLANGCI_LINT_VERSION}-linux-amd64/golangci-lint "$GOBIN/";
+        rm -rf /tmp/${ARCHIVE} /tmp/golangci-lint-*/;
+      fi
+    - golangci-lint --version
     - golangci-lint run ./...
   cache:
     policy: pull-push
-  allow_failure: false
   rules:
-    - if: $CI_COMMIT_BRANCH
+    - exists:
+        - "**/*.go"
 
 test:
   <<: *default
   stage: test
   script:
-    - golangci-lint test
+    - go test ./... -v
   cache:
     policy: pull-push
-  allow_failure: false
   rules:
-    - if: $CI_COMMIT_BRANCH
+    - exists:
+        - "**/*.go"
