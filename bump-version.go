@@ -23,6 +23,10 @@ const (
 var programVersionStr string
 
 func main() {
+	// Make sure the current working directory is the Git repo root
+	repoAbsPath := fatalOnErr2(getRepoAbsPath())
+	fatalOnErr(os.Chdir(repoAbsPath))
+
 	configFilename := "" // not determined yet
 
 	forceMode := false
@@ -251,4 +255,15 @@ If no command is specified, the default command to run is bump.
 `, programName)
 
 	os.Exit(ExitUsage)
+}
+
+func getRepoAbsPath() (string, error) {
+	path, errOut, err := getCommandOutput("git", "rev-parse", "--show-toplevel")
+	if err != nil {
+		return "", fmt.Errorf("could not get the absolute repo path from Git: %v", errOut)
+	}
+
+	path = strings.TrimSuffix(path, "\n")
+
+	return path, nil
 }
