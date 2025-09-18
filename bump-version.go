@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -17,6 +18,9 @@ const (
 	ExitFailure = 1 // an error occurred
 	ExitUsage   = 2 // invalid usage of the program
 )
+
+//go:embed VERSION
+var programVersionStr string
 
 func main() {
 	configFilename := "" // not determined yet
@@ -207,21 +211,7 @@ func main() {
 		fatalOnErr(writeJSONFile(defaultConfigFilename, defaultConfig, 0o644))
 
 	case "version":
-		filename := "VERSION"
-
-		// Read version file
-		contentBytes, err := os.ReadFile(filename)
-		if err != nil {
-			fatalf("could not read version file %s: %v", filename, err)
-		}
-
-		// Parse version
-		version, err := parseVersion(strings.TrimSpace(string(contentBytes)))
-		if err != nil {
-			fatalf("could not parse version file %s: %v", filename, err)
-		}
-
-		fmt.Println(version.ToString())
+		fmt.Println(programVersionStr)
 
 	case "help":
 		printHelpAndExit()
