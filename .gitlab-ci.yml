@@ -1,6 +1,7 @@
 stages:
   - fmt
   - lint
+  - test
 
 variables:
   GOMODCACHE: "$CI_PROJECT_DIR/.cache/pkg/mod"
