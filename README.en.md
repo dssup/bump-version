@@ -72,7 +72,7 @@ After building, the `build/` directory contains the expected files:
 - Run:
 
 ```bash
-go run scripts/build.go
+cd scripts && go run . build && cd ..
 ```
 
 After that, compiled artifacts for supported platforms will appear in the `build/` directory.
