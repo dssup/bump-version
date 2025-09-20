@@ -37,7 +37,9 @@ func main() {
 func MustBuildTarget(filename, goos, goarch string) {
 	fmt.Printf("Building %s\n", filename)
 	Must(os.MkdirAll(filepath.Dir(filename), 0o755))
-	MustRunCmd([]string{"GOOS=" + goos, "GOARCH=" + goarch}, "go", "build", "-o", filename, ".")
+	MustRunCmd(
+		[]string{"GOOS=" + goos, "GOARCH=" + goarch},
+		"go", "build", "-ldflags=-s -w", "-o", filename, ".")
 }
 
 func MustRunCmd(env []string, name string, arg ...string) {
