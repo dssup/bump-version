@@ -4,5 +4,6 @@
   "changeLogFilename": "CHANGELOG.md",
   "ignoreInvalidCommits": false,
   "versionTagFormat": "v{version}",
-  "bumpVersionCommit": "chore(release): {version}"
+  "bumpVersionCommit": "chore(release): {version}",
+  "shouldPushToOrigin": false
 }

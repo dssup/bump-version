@@ -78,5 +78,11 @@ func bumpVersion(cfg *Config) error {
 		return fmt.Errorf("error adding Git tag for this release: %s", errOut)
 	}
 
+	if cfg.ShouldPushToOrigin {
+		if _, errOut, err := getCommandOutput("git", "push", "--tags", "origin"); err != nil {
+			return fmt.Errorf("error pushing to remote Git repository: %s", errOut)
+		}
+	}
+
 	return nil
 }
