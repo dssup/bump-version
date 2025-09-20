@@ -320,6 +320,7 @@ Config file fields:
   is replaced with the semantic version X.Y.Z.
 - `"allowedCommitKinds"` — list of allowed commit kinds.
 - `"bumpVersionCommit"` — version bump commit message format.
+- `"shouldPushToOrigin"` — should this utility push the main branch on version bump.
 
 Each field present in the configuration file overrides the default.
 

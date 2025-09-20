@@ -18,6 +18,7 @@ type Config struct {
 	VersionTagFormat     string   `json:"versionTagFormat"`
 	AllowedCommitKinds   []string `json:"allowedCommitKinds"`
 	BumpVersionCommit    string   `json:"bumpVersionCommit"`
+	ShouldPushToOrigin   bool     `json:"shouldPushToOrigin"`
 }
 
 // getDefaultConfig returns the default config as read-only.
@@ -42,7 +43,8 @@ func getDefaultConfig() Config {
 			"style",
 			"test",
 		},
-		BumpVersionCommit: "chore(release): {version}",
+		BumpVersionCommit:  "chore(release): {version}",
+		ShouldPushToOrigin: false,
 	}
 }
 
