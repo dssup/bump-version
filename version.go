@@ -73,12 +73,21 @@ func parseVersion(version string) (Version, error) {
 func getCurrentVersionTag() (string, error) {
 	currentVersionTagGitOutput, errOut, err := getCommandOutput("git", "describe", "--tags", "--abbrev=0")
 	if err != nil {
+		if seemsNoTagsError(errOut) {
+			return "", errors.New("no version tags found; mark the first version with `git tag v0.1.0`")
+		}
 		return "", fmt.Errorf("error getting current version from Git: %s", errOut)
 	}
 
 	currentVersionTag := strings.TrimSpace(currentVersionTagGitOutput)
 
 	return currentVersionTag, nil
+}
+
+func seemsNoTagsError(errOut string) bool {
+	errOutLower := strings.ToLower(errOut)
+	subLower := "no names found, cannot describe anything"
+	return strings.Contains(errOutLower, subLower)
 }
 
 func getCurrentVersionByGitTag(versionTagFormat string) (Version, error) {
