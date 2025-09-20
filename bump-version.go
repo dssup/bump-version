@@ -214,6 +214,49 @@ func main() {
 		// Write the default config file
 		fatalOnErr(writeJSONFile(defaultConfigFilename, defaultConfig, 0o644))
 
+	case "cancel":
+		cfg := fatalOnErr2(loadConfig(configFilename))
+		versionTag := fatalOnErr2(getCurrentVersionTag())
+
+		commands := [][]string{
+			// Undo the last commit
+			{"git", "reset", "--mixed", "HEAD~1"},
+
+			// Remove the newest version tag
+			{"git", "tag", "-d", versionTag},
+
+			// Remove the recent changes made to the Changelog
+			{"git", "restore", cfg.ChangeLogFilename},
+		}
+
+		// Add the commands to remove the recent changes made to the version files
+		for _, filename := range cfg.VersionFilenames {
+			commands = append(commands, []string{"git", "restore", filename})
+		}
+
+		if !forceMode {
+			fmt.Println("WARNING: the following commands will be run:")
+			fmt.Println()
+
+			for _, cmdArgs := range commands {
+				fmt.Printf("\t%s\n", strings.Join(cmdArgs, " "))
+			}
+
+			fmt.Println()
+
+			question := "Are you sure you want to run them?"
+			if !askYesNo(os.Stdin, os.Stdout, question, false) {
+				fmt.Println("Canceled.")
+				return
+			}
+		}
+
+		for _, cmdArgs := range commands {
+			if _, errOut, err := getCommandOutput(cmdArgs[0], cmdArgs[1:]...); err != nil {
+				fatalf("%s", errOut)
+			}
+		}
+
 	case "version":
 		fmt.Println(programVersionStr)
 
@@ -242,6 +285,7 @@ Commands:
   my-version           show the current version of your program and exit
   next-version         show the next version of your program and exit
   init-config          add a config file bump-version.json to the project root
+  cancel               cancel the recent version bump (if bump done too early)
   version              show this program version and exit
   help                 show this help and exit
 

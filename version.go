@@ -70,14 +70,23 @@ func parseVersion(version string) (Version, error) {
 	return ver, nil
 }
 
-func getCurrentVersionByGitTag(versionTagFormat string) (Version, error) {
-	// Get current version tag from Git
+func getCurrentVersionTag() (string, error) {
 	currentVersionTagGitOutput, errOut, err := getCommandOutput("git", "describe", "--tags", "--abbrev=0")
 	if err != nil {
-		return Version{}, fmt.Errorf("error getting current version from Git: %s", errOut)
+		return "", fmt.Errorf("error getting current version from Git: %s", errOut)
 	}
 
 	currentVersionTag := strings.TrimSpace(currentVersionTagGitOutput)
+
+	return currentVersionTag, nil
+}
+
+func getCurrentVersionByGitTag(versionTagFormat string) (Version, error) {
+	// Get current version tag from Git
+	currentVersionTag, err := getCurrentVersionTag()
+	if err != nil {
+		return Version{}, err
+	}
 
 	// Get current version from current tag
 	currentVersionString, err := extractVersionStringFromTag(currentVersionTag, versionTagFormat)

@@ -374,6 +374,9 @@ Each field present in the configuration file overrides the default.
 - **Question:** What happens if there are no commits matching Conventional Commits?
   - **Answer:** The utility prints an error or a warning about ignored commits. You will need to run an interactive rebase (`git rebase -i`) to fix the commits.
 
+- **Question:** I bumped the new version too early. What should I do?
+  - **Answer:** Run the `bump-version cancel` command.
+
 ---
 
 ## Contributors
