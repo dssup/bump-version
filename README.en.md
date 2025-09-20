@@ -371,8 +371,8 @@ Each field present in the configuration file overrides the default.
 
 ## Frequently Asked Questions (FAQ)
 
-- Question: What happens if there are no commits matching Conventional Commits?
-  - Answer: The utility prints an error or a warning about ignored commits. You will need to run an interactive rebase (`git rebase -i`) to fix the commits.
+- **Question:** What happens if there are no commits matching Conventional Commits?
+  - **Answer:** The utility prints an error or a warning about ignored commits. You will need to run an interactive rebase (`git rebase -i`) to fix the commits.
 
 ---
 
