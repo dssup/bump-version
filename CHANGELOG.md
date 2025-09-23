@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.0](///compare/v0.2.0...v0.3.0) (2025-09-23)
+
+
+### Features
+
+* add a better error message if no tags exist when bumping that guides the user to run `git tag` 0beac0d
+* **command:** add the cancel command to cancel recent version bump if done too early c6641e8
+* **config:** add shouldPushToOrigin config property 2225645
+
 ## [0.2.0](///compare/v0.1.4...v0.2.0) (2025-09-18)
 
 
@@ -50,6 +59,7 @@
 
 
 * add the initial implementation of the utility ac773e5
+
 
 
 
