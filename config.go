@@ -25,7 +25,7 @@ type Config struct {
 func getDefaultConfig() Config {
 	return Config{
 		Version:              "1.0.0",
-		VersionFilenames:     []string{"VERSION"},
+		VersionFilenames:     []string{},
 		ChangeLogFilename:    "CHANGELOG.md",
 		IgnoreInvalidCommits: false,
 		VersionTagFormat:     "v{version}",
