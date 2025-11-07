@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0](///compare/v0.3.0...v1.0.0) (2025-11-07)
+
+
+### Features
+
+* **config:** [BREAKING CHANGE] change default version filename list to empty 5fab50a
+
 ## [0.3.0](///compare/v0.2.0...v0.3.0) (2025-09-23)
 
 
@@ -59,6 +66,7 @@
 
 
 * add the initial implementation of the utility ac773e5
+
 
 
 
