@@ -212,7 +212,7 @@ func main() {
 		}
 
 		// Write the default config file
-		fatalOnErr(writeJSONFile(defaultConfigFilename, defaultConfig, 0o644))
+		fatalOnErr(saveConfig(defaultConfigFilename, defaultConfig, 0o644))
 
 	case "cancel":
 		cfg := fatalOnErr2(loadConfig(configFilename))
@@ -284,7 +284,7 @@ Commands:
   lint-commit message  lint the provided commit message
   my-version           show the current version of your program and exit
   next-version         show the next version of your program and exit
-  init-config          add a config file bump-version.json to the project root
+  init-config          add a config file bump-version.cfg to the project root
   cancel               cancel the recent version bump (if bump done too early)
   version              show this program version and exit
   help                 show this help and exit
@@ -292,7 +292,7 @@ Commands:
 Common options:
 
   -config filename  use another config filename instead of default
-                    (default config name: bump-version.json)
+                    (default config name: bump-version.cfg)
   -force            suppress the prompts like "Are you sure you want to
                     overwrite this file?"
 If no command is specified, the default command to run is bump.

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -43,16 +42,8 @@ func bumpVersion(cfg *Config) error {
 
 	// Update version files
 	for _, name := range cfg.VersionFilenames {
-		ext := filepath.Ext(name)
-		if ext == ".json" {
-			schema := JSONVersionFileSchema{Version: newVersionStr}
-			if err := writeJSONFile(name, schema, 0o600); err != nil {
-				return fmt.Errorf("could not write version file %s: %w", name, err)
-			}
-		} else {
-			if err := os.WriteFile(name, []byte(newVersionStr), 0o600); err != nil {
-				return fmt.Errorf("could not write version file %s: %w", name, err)
-			}
+		if err := os.WriteFile(name, []byte(newVersionStr), 0o600); err != nil {
+			return fmt.Errorf("could not write version file %s: %w", name, err)
 		}
 	}
 

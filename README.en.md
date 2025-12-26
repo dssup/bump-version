@@ -288,10 +288,10 @@ bump-version version
 
 - Use a different config file:
 ```bash
-bump-version command -config other-bump-version-config.json 
+bump-version command -config other-bump-version-config.cfg
 ```
 
-- Add a config file `bump-version.json` to the project root:
+- Add a config file `bump-version.cfg` to the project root:
 ```bash
 bump-version init-config
 ```
@@ -303,7 +303,7 @@ bump-version -force init-config
 
 ### Utility settings
 
-The config file must be at the project root named `bump-version.json`.
+The config file must be at the project root named `bump-version.cfg`.
 If not found, default configuration is used.
 
 The `-config` option points the utility to another config file.
@@ -312,15 +312,15 @@ Default configuration:
 
 Config file fields:
 
-- `"version"` — configuration file version.
-- `"versionFilenames"` — names of the version files.
-- `"changeLogFilename"` — name of the ChangeLog file.
-- `"ignoreInvalidCommits"` — ignore invalid commits (do not fail on them).
-- `"versionTagFormat"` — Git tag format for releases. Substitution `{version}`
+- `version` — configuration file version.
+- `versionFilenames` — comma-separated names of the version files.
+- `changeLogFilename` — name of the ChangeLog file.
+- `ignoreInvalidCommits` — ignore invalid commits (do not fail on them).
+- `versionTagFormat` — Git tag format for releases. Substitution `{version}`
   is replaced with the semantic version X.Y.Z.
-- `"allowedCommitKinds"` — list of allowed commit kinds.
-- `"bumpVersionCommit"` — version bump commit message format.
-- `"shouldPushToOrigin"` — should this utility push the main branch on version bump.
+- `allowedCommitKinds` — comma-separated list of allowed commit kinds.
+- `bumpVersionCommit` — version bump commit message format.
+- `shouldPushToOrigin` — should this utility push the main branch on version bump.
 
 Each field present in the configuration file overrides the default.
 

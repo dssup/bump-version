@@ -1,9 +1,0 @@
-{
-  "version": "1.0.0",
-  "versionFilenames": ["VERSION"],
-  "changeLogFilename": "CHANGELOG.md",
-  "ignoreInvalidCommits": false,
-  "versionTagFormat": "v{version}",
-  "bumpVersionCommit": "chore(release): {version}",
-  "shouldPushToOrigin": false
-}

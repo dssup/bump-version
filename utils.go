@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -12,25 +11,6 @@ import (
 	"unicode"
 	"unicode/utf8"
 )
-
-func readJSONFile(name string, v any) error {
-	f, err := os.Open(name)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	return json.NewDecoder(f).Decode(v)
-}
-
-func writeJSONFile(name string, v any, perm os.FileMode) error {
-	data, err := json.MarshalIndent(v, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	return os.WriteFile(name, data, perm)
-}
 
 // askYesNo prompts the user with the given question and returns true for "yes" and false for "no".
 // It accepts "y", "yes", "n", "no" (any case). If the reader hits EOF, it returns the provided defaultVal.
