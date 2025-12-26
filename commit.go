@@ -326,13 +326,13 @@ func ParseConventionalCommit(message string, hasHash bool, allowedKinds []string
 	}
 
 	// Find the first ":" that separates header from description
-	colonIndex := strings.Index(header, ":")
-	if colonIndex == -1 {
+	before, after, ok := strings.Cut(header, ":")
+	if !ok {
 		return Commit{}, errors.New("commit message header must have colon to separate commit kind and description")
 	}
 
 	// Parse and validate kind (stage 1)
-	headerBeforeDescription := header[:colonIndex]
+	headerBeforeDescription := before
 	if HasLeadingWhitespace(headerBeforeDescription) {
 		return Commit{}, errors.New("commit message kind should not have leading whitespace")
 	}
@@ -384,7 +384,7 @@ func ParseConventionalCommit(message string, hasHash bool, allowedKinds []string
 	commit.Breaking = breaking
 
 	// Parse and validate description
-	description := header[colonIndex+1:]
+	description := after
 	if !strings.HasPrefix(description, " ") {
 		return Commit{}, errors.New("commit message header must have space after colon")
 	}

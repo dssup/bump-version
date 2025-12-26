@@ -1,24 +1,26 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"os"
 	"strings"
 )
 
 const (
-	defaultConfigFilename = "bump-version.json"
+	defaultConfigFilename = "bump-version.cfg"
 	versionTagFormatSubst = "{version}" // substitute for an actual version
 )
 
 type Config struct {
-	Version              string   `json:"version"`
-	VersionFilenames     []string `json:"versionFilenames"`
-	ChangeLogFilename    string   `json:"changeLogFilename"`
-	IgnoreInvalidCommits bool     `json:"ignoreInvalidCommits"`
-	VersionTagFormat     string   `json:"versionTagFormat"`
-	AllowedCommitKinds   []string `json:"allowedCommitKinds"`
-	BumpVersionCommit    string   `json:"bumpVersionCommit"`
-	ShouldPushToOrigin   bool     `json:"shouldPushToOrigin"`
+	Version              string
+	VersionFilenames     []string
+	ChangeLogFilename    string
+	IgnoreInvalidCommits bool
+	VersionTagFormat     string
+	AllowedCommitKinds   []string
+	BumpVersionCommit    string
+	ShouldPushToOrigin   bool
 }
 
 // getDefaultConfig returns the default config as read-only.
@@ -61,45 +63,82 @@ func loadConfig(name string) (Config, error) {
 		}
 	}
 
-	var cfg Config
-
 	// Read config from file
-	if err := readJSONFile(name, &cfg); err != nil {
+	cfgData, err := os.ReadFile(name)
+	if err != nil {
 		return Config{}, err
 	}
 
-	// Validate version tag format
-	if strings.Count(cfg.VersionTagFormat, versionTagFormatSubst) != 1 {
-		err := fmt.Errorf(
-			"version tag format %q expected to have one occurrence of %s",
-			cfg.VersionTagFormat,
-			versionTagFormatSubst,
-		)
-		return Config{}, err
-	}
-
-	// Replace zero values with default values
-	if cfg.Version == "" {
-		cfg.Version = defaultConfig.Version
-	}
-	if cfg.VersionFilenames == nil {
-		cfg.VersionFilenames = defaultConfig.VersionFilenames
-	}
-	if cfg.ChangeLogFilename == "" {
-		cfg.ChangeLogFilename = defaultConfig.ChangeLogFilename
-	}
-	if !cfg.IgnoreInvalidCommits {
-		cfg.IgnoreInvalidCommits = defaultConfig.IgnoreInvalidCommits
-	}
-	if cfg.VersionTagFormat == "" {
-		cfg.VersionTagFormat = defaultConfig.VersionTagFormat
-	}
-	if cfg.AllowedCommitKinds == nil {
-		cfg.AllowedCommitKinds = defaultConfig.AllowedCommitKinds
-	}
-	if cfg.BumpVersionCommit == "" {
-		cfg.BumpVersionCommit = defaultConfig.BumpVersionCommit
+	cfg := defaultConfig // base off the default config
+	lineNo := 1
+	for line := range strings.SplitSeq(string(cfgData), "\n") {
+		line = strings.TrimSpace(line) // ignore space
+		if line == "" || strings.HasPrefix(line, "#") {
+			// Ignore empty line or comments
+			lineNo++
+			continue
+		}
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) != 2 {
+			// Only key value pairs expected
+			err := fmt.Errorf(
+				"invalid config line %d format, must be =-separated key-value pair",
+				lineNo,
+			)
+			return Config{}, err
+		}
+		// No spaces around equals
+		key := strings.TrimSpace(parts[0])
+		value := strings.TrimSpace(parts[1])
+		// Overwrite the default parameters
+		switch key {
+		case "version":
+			cfg.Version = value
+		case "versionFilenames":
+			cfg.VersionFilenames = strings.Split(value, ",")
+			for i := range cfg.VersionFilenames {
+				cfg.VersionFilenames[i] = strings.TrimSpace(cfg.VersionFilenames[i])
+			}
+		case "changeLogFilename":
+			cfg.ChangeLogFilename = value
+		case "ignoreInvalidCommits":
+			cfg.IgnoreInvalidCommits = value == "true"
+		case "versionTagFormat":
+			cfg.VersionTagFormat = value
+			// Validate version tag format
+			if strings.Count(cfg.VersionTagFormat, versionTagFormatSubst) != 1 {
+				err := fmt.Errorf(
+					"version tag format %q expected to have one occurrence of %s",
+					cfg.VersionTagFormat,
+					versionTagFormatSubst,
+				)
+				return Config{}, err
+			}
+		case "allowedCommitKinds":
+			cfg.AllowedCommitKinds = strings.Split(value, ",")
+			for i := range cfg.AllowedCommitKinds {
+				cfg.AllowedCommitKinds[i] = strings.TrimSpace(cfg.AllowedCommitKinds[i])
+			}
+		case "bumpVersionCommit":
+			cfg.BumpVersionCommit = value
+		case "shouldPushToOrigin":
+			cfg.ShouldPushToOrigin = value == "true"
+		}
+		lineNo++
 	}
 
 	return cfg, nil
+}
+
+func saveConfig(configFilename string, config Config, perm os.FileMode) error {
+	var b bytes.Buffer
+	fmt.Fprintf(&b, "version=%s\n", config.Version)
+	fmt.Fprintf(&b, "versionFilenames=%s\n", strings.Join(config.VersionFilenames, ","))
+	fmt.Fprintf(&b, "changeLogFilename=%s\n", config.ChangeLogFilename)
+	fmt.Fprintf(&b, "ignoreInvalidCommits=%t\n", config.IgnoreInvalidCommits)
+	fmt.Fprintf(&b, "versionTagFormat=%s\n", config.VersionTagFormat)
+	fmt.Fprintf(&b, "allowedCommitKinds=%s\n", strings.Join(config.AllowedCommitKinds, ","))
+	fmt.Fprintf(&b, "bumpVersionCommit=%s\n", config.BumpVersionCommit)
+	fmt.Fprintf(&b, "shouldPushToOrigin=%t\n", config.ShouldPushToOrigin)
+	return os.WriteFile(configFilename, b.Bytes(), perm)
 }

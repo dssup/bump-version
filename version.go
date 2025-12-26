@@ -7,10 +7,6 @@ import (
 	"strings"
 )
 
-type JSONVersionFileSchema struct {
-	Version string `json:"version"`
-}
-
 type Version struct {
 	Major, Minor, Patch int
 }
@@ -114,14 +110,14 @@ func getCurrentVersionByGitTag(versionTagFormat string) (Version, error) {
 
 func extractVersionStringFromTag(currentVersionTag, versionTagFormat string) (string, error) {
 	// Get index of the version placeholder
-	subIndex := strings.Index(versionTagFormat, versionTagFormatSubst)
-	if subIndex < 0 {
+	before, after, ok := strings.Cut(versionTagFormat, versionTagFormatSubst)
+	if !ok {
 		panic("ExtractVersionStringFromTag assumes valid versionTagFormat")
 	}
 
 	// Get substrings before and after the placeholder
-	prefix := versionTagFormat[:subIndex]
-	suffix := versionTagFormat[subIndex+len(versionTagFormatSubst):]
+	prefix := before
+	suffix := after
 
 	if !strings.HasPrefix(currentVersionTag, prefix) ||
 		!strings.HasSuffix(currentVersionTag, suffix) {
