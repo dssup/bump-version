@@ -1,90 +1,89 @@
-# Контрибуция
+# Contributing
 
-Цель этого документа — помочь понять некоторые решения и как контрибьютить.
+This document is to help to understand some decisions and how to contribute.
 
-## Прочитайте README.md
+## Read README.en.md
 
-Может прозвучать очевидно, но этот документ уже имеет много информации о том как
-использовать эту  утилиту, а также  о том как вы  должны коммитить и  как должны
-выглядить ваши собщения коммитов. Эта утилита использует саму себя для релизов.
+This may sound  obvious but this document  already has a lot  of the information
+about this tool but it also has  the information about how you should commit and
+what your commit message should look like. This tool uses itself for releases.
 
-## Меинтейнеры
+## Maintainers
 
-Вы можете  спросить меинтейнеров если  вы не уверены в  чем-либо или у  вас есть
-вопрос, на который здесь нет ответа.
- 
-- Даниил Степанов <dstepanov485@gmail.com>
+You can ask the maintainers if you're  unsure about something or have a question
+that is not answered here.
 
-## Стек
+- Daniil Stepanov <dstepanov485@gmail.com>
 
-- Go 1.26 или новее
+## Stack
 
-Вам может также понадобиться:
+- Go 1.26 or newer
 
-- golangci-lint (линтер для Go)
-- gofumpt (более строгий форматтер для Go)
+You may additionally need:
 
-Если вы  знаете больше  инструментов для  контроля качества кода  для Go,  то не
-стесняйтесь  ввести их  в проект.  Всегда  замечательно убедиться,  что код  еще
-надежнее и консистентнее.
+- golangci-lint (linter for Go)
+- gofumpt (a stricter formatter for Go)
 
-## Языки
+If you know  more code quality tools  for Go then feel free  to contribute them.
+It's always great to make sure code is even more reliable and consistent.
 
-По  поводу естественных  языков, этот  проект должен  поддерживать английский  и
-русский.
+## Languages
 
-По  поводу  языков программирования  и  других  полных  по Тьюрингу  языков,  не
-используйте никакой  другой язык помимо  Go. Это помогает сохранять  этот проект
-консистентным и избегать смешивания множества языков.
+As for natural languages, this project must support both English and Russian.
 
-## Дистрибуция
+As for programming languages and other Turing complete languages, do not use any
+other language  besides Go. It helps  to keep this project  consistent and avoid
+mixing many languages.
 
-Поддерживайте дистрибуцию консистентной и без какой-либо обязательной установки.
-Не  добавляйте другие  языки помимо  Go. Только  статически компонуйте  бинарные
-файлы.
+## Distribution
 
-## Вопросы и ответы
+Make the distribution simple without  any installation required. Don't add other
+languages other than Go. Only statically link the binaries.
 
-### Почему нет шелл-скриптов и мейк-файлов?
+## Questions and Answers
 
-Потому что  те же самые  вещи можно сделать,  используя только Go.  Весь проект,
-включая скрипты,  написан на Go.  Не нужно усложнять,  вводя ещё один  язык, тем
-более платформозависимый или даже такой,  который «работает на моей машине», как
-языки шелл-скриптов. Если помните, Perl был создан как раз чтобы решить проблему
-платформозависимости шелл-скриптов.  Скрипты на Go  примерно такой же  длины, но
-они  намного читаемее,  портативнее, надёжнее  и расширяемее  для более  сложной
-логики.  Это позволяет  использовать всю  инфраструктуру инструментов  Go в  том
-числе  в скриптах,  такие  как:  библиотеки (хотя  зависимости  этом проекте  не
-поощряются), отладчики, форматтеры, линтеры. Плюс, у Go есть удобная команда `go
-run`, которая  запускает код на Go,  компилируя его «на лету»  без необходимости
-явно это делать.
+### Why There is No Shell Scripts or Makefiles?
 
-Каталог `scripts/` —  это распространенное название. Все  скрипты проекта должны
-находиться в этом  каталоге. Лично вы можете  использовать глобальную программу,
-например  `sc`, во  всех своих  Go-проектах.  Это позволяет  просто вводить  `sc
-check`, `sc build`, `sc clean`. Сделать это можно, добавив свою программу `sc` в
-переменную окружения PATH. Она может быть  реализована как `cd scripts && go run
-. "$@"` или любым другим способом.  Чтобы эта практика была удобнее, держите все
-с как единую программу-лаунчер для многих скриптов.
+Because you can do the same things  using just Go. The entire project, including
+scripts is  written in Go. There's  no need to complicate  things by introducing
+another language especially the one that is platform-dependant or even "It works
+on my machine"-dependant such as shell scripting languages. If you remember, the
+reason why  Perl was  created is  to solve  the problem  of shell  scripts being
+platform-dependant. The  Go scripts  are approximately the  length but  are much
+more readable, portable, reliable and  extensible for more complicated logic. It
+allows  to use  the whole  Go  tooling infrastructure  in scripts  too such  as,
+libraries  (although dependencies  are discouraged  in this  project), debugger,
+formatter, linter,  everything basically. Plus,  `Go` has a convenient  `go run`
+command  to  run  code  with  on-the-fly compilation,  so  there's  no  need  to
+explicitly compile.
 
-Что  касается инкрементальных  сборок:  компилятор Go  и современные  компьютеры
-очень  быстры.  Кроме  того,  Go фактически  использует  глобальный  кэш  сборки
-для  артефактов,  так  что  процесс сборки  в  основном  автоматизирован  самими
-инструментами  Go,  и нет  нужды  добавлять  мейк-файлы  поверх этого.  Это  был
-бы  третий  язык,  платформозависимый,  и который  пользователь  должен  был  бы
-установить,  чтобы просто  собрать  эту программу.  Программа должна  собираться
-только инструментами самого языка программирования, а также код сборки ПО должен
-быть на том же языке, на  котором написано ПО. Это вдохновленно философией языка
-программирования Zig.
+The `scripts/` directory is a conventional  name. All project scripts must be in
+that directory. You can personally use  a global program, e.g., `sc`, across all
+of the Go  projects you have. This  allows to just type `sc  check`, `sc build`,
+`sc  clean`. You  can  do  it by  adding  your own  `sc`  program  to your  PATH
+environment variable. It can be implemented as  `cd scripts && go run . "$@"` or
+any other way you want. To make  this practice more convenient, keep the scripts
+as a single program-launcher for many scripts.
 
-Пожалуйста,  поддерживайте  простоту. Не  добавляйте  сложности  и требования  к
-многопрофильности языков в  этот проект. Это позволяет  проекту просто требовать
-«установите только Go»,  чтобы делать всё здесь, включая  сборку и тестирование.
-Это удобнее и для разработчиков, и для пользователей.
+As for incremental  builds, both Go compiler and modern  computers are extremely
+fast. Moreover,  Go actually does use  the global build cache  for artifacts, so
+the build  process is  mostly automated  by the Go  tooling itself  already, and
+there's no  need to  introduce makefiles  on top of  it. It  would be  the third
+language, platform-dependant one, and a tool that the user would have to install
+in order  to simply  build this software.  Software must be  built by  the tools
+provided by the programming language itself. Software must be built by the tools
+of programming language itself, as well  as the software build process code must
+be  written in  the same  language  that the  software  is written  in. This  is
+inspired by the philosophy of the Zig programming language.
 
-### Я могу использовать библиотеку X?
+Keep things simple please. Don't  add complexity and polyglot-required things to
+this project. This allows this project to  simply say "install only Go" in order
+to do  everything here including building  and testing. This is  easier for both
+developers and users.
 
-Нет.  Этот  проект стремится  к  портативности  и избегает  «ада  зависимостей».
-Используйте _только_ стандартную библиотеку Go. Одна из классных особенностей Go
-— это  поразительная стандартная  библиотека со  всем необходимым  «из коробки»,
-которая значительно уменьшает количество необходимых сторонних пакетов.
+### Can I Use Library X?
+
+No. This  project strives for  portability and  avoids the dependency  hell. Use
+_only_ the Go standard library. One of the coolest features of Go is the amazing
+batteries-included  standard library  that  dramatically reduces  the number  of
+third-party packages needed.
