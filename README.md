@@ -190,9 +190,6 @@ Brief explanation of commit kinds:
 - style — formatting, style fixes not affecting logic.
   Example: `style: format code`
 
-- refactor — изменения кода, не добавляющие функциональности и не исправляющие баги.
-  Пример: `refactor: simplify user service logic`
-
 - refactor — code changes that neither add features nor fix bugs.
   Example: `refactor: simplify user service logic`
 
