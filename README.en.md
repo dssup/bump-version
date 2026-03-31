@@ -382,4 +382,4 @@ Each field present in the configuration file overrides the default.
 
 ## Contributors
 
-- Daniil Stepanov <sds@sigma-is.ru>
+- Daniil Stepanov <dstepanov485@gmail.com>
