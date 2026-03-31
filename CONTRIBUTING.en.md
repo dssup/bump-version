@@ -13,7 +13,7 @@ what your commit message should look like. This tool uses itself for releases.
 You can ask the maintainers if you're  unsure about something or have a question
 that is not answered here.
 
-- Daniil Stepanov (sds@sigma-is.ru)
+- Daniil Stepanov <dstepanov485@gmail.com>
 
 ## Stack
 

@@ -383,4 +383,4 @@ bump-version -force init-config
 
 ## Контрибьютеры
 
-- Даниил Степанов <sds@sigma-is.ru>
+- Даниил Степанов <dstepano485@gmail.com>
