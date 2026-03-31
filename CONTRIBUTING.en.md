@@ -17,7 +17,7 @@ that is not answered here.
 
 ## Stack
 
-- Go 1.25.1 or newer
+- Go 1.26 or newer
 
 You may additionally need:
 
