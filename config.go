@@ -71,7 +71,7 @@ func loadConfig(name string) (Config, error) {
 
 	cfg := defaultConfig // base off the default config
 	lineNo := 1
-	for line := range strings.SplitSeq(string(cfgData), "\n") {
+	for line := range strings.Lines(string(cfgData)) {
 		line = strings.TrimSpace(line) // ignore space
 		if line == "" || strings.HasPrefix(line, "#") {
 			// Ignore empty line or comments
